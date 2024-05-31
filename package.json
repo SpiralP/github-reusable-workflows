@@ -1,0 +1,16 @@
+{
+  "name": "github-reusable-workflows-node",
+  "version": "0.1.0",
+  "source": "src/index.html",
+  "browserslist": "defaults",
+  "scripts": {
+    "build": "parcel build ./web/index.html"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "parcel": "^2.12.0"
+  }
+}

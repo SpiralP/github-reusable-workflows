@@ -1,0 +1,6 @@
+/.parcel-cache
+/dist
+/flake.lock
+/node_modules
+/result
+/target
