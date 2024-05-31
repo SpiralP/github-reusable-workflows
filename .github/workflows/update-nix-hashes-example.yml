@@ -3,7 +3,6 @@ name: Update nix hashes
 on:
   pull_request:
     branches: [master, main]
-  workflow_call:
 
 concurrency:
   group: update-nix-hashes-${{ github.ref }}
