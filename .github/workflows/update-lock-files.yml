@@ -12,6 +12,11 @@ on:
           Leave blank/unspecified to disable running "npm update"
         required: false
         type: string
+      npm-manifest-dir:
+        default: .
+        description: Path to directory containing "package.json" file.
+        required: false
+        type: string
       rust-attribute:
         description: |
           Nix flake attribute path to buildRustPackage or similar output.
@@ -21,11 +26,6 @@ on:
       rust-manifest-dir:
         default: .
         description: Path to directory containing "Cargo.toml" file.
-        required: false
-        type: string
-      node-manifest-dir:
-        default: .
-        description: Path to directory containing "package.json" file.
         required: false
         type: string
 
@@ -43,15 +43,16 @@ jobs:
         working-directory: ${{ inputs.rust-manifest-dir }}
       - run: git diff && git add -v .
         if: ${{ inputs.rust-attribute }}
+      # TODO maybe delete lock file because `npm update` is strange
       - run: nix develop '.#${{ inputs.npm-attribute }}' --no-update-lock-file --print-build-logs -c npm update
         if: ${{ inputs.npm-attribute }}
-        working-directory: ${{ inputs.node-manifest-dir }}
+        working-directory: ${{ inputs.npm-manifest-dir }}
       - run: git diff && git add -v .
         if: ${{ inputs.npm-attribute }}
       - run: |
           nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
             --recreate-lock-file --no-write-lock-file \
-            -- '${{ inputs.npm-attribute }}' '${{ inputs.node-manifest-dir }}/package-lock.json'
+            -- '${{ inputs.npm-attribute }}' '${{ inputs.npm-manifest-dir }}/package-lock.json'
         if: ${{ inputs.npm-attribute }}
       - run: git diff && git add -v .
         if: ${{ inputs.npm-attribute }}
