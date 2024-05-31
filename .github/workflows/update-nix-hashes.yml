@@ -3,13 +3,16 @@ on:
     inputs:
       flake-attribute:
         default: default
+        description: Nix flake attribute path to default output to test build.
         required: false
         type: string
       npm-attribute:
+        description: Nix flake attribute path to buildNpmPackage or similar output.
         required: true
         type: string
-      package-lock-path:
-        default: package-lock.json
+      node-manifest-dir:
+        default: .
+        description: Path to directory containing "package.json" file.
         required: false
         type: string
 
@@ -25,7 +28,7 @@ jobs:
       - run: |
           nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
             --recreate-lock-file --no-write-lock-file \
-            -- '${{ inputs.npm-attribute }}' '${{ inputs.package-lock-path }}'
+            -- '${{ inputs.npm-attribute }}' '${{ inputs.node-manifest-dir }}/package-lock.json'
       - run: git diff && git add -v .
       - run: |
           nix build '.#${{ inputs.flake-attribute }}' \

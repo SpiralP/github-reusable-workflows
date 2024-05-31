@@ -3,6 +3,7 @@ on:
     inputs:
       flake-attribute:
         default: default
+        description: Nix flake attribute path to default output to test build.
         required: false
         type: string
 
