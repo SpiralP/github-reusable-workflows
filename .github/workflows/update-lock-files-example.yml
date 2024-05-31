@@ -16,3 +16,6 @@ permissions:
 jobs:
   update_nix_hashes:
     uses: SpiralP/github-reusable-workflows/.github/workflows/update-lock-files.yml@main
+    with:
+      npm-attribute: node
+      rust-attribute: rust
