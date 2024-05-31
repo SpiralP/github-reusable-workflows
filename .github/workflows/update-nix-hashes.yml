@@ -1,0 +1,40 @@
+on:
+  workflow_call:
+    inputs:
+      flake-attribute:
+        default: default
+        required: false
+        type: string
+      npm-attribute:
+        required: true
+        type: string
+      package-lock-path:
+        default: package-lock.json
+        required: false
+        type: string
+
+jobs:
+  update_nix_hashes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: |
+          nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
+            --recreate-lock-file --no-write-lock-file \
+            -- '${{ inputs.npm-attribute }}' '${{ inputs.package-lock-path }}'
+      - run: git diff && git add -v .
+      - run: |
+          nix build '.#${{ inputs.flake-attribute }}' \
+            --no-update-lock-file --print-build-logs
+      - run: 'git commit -m "nix: update hashes" -m "$RUN_URL" || true'
+        env:
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - run: git push origin
