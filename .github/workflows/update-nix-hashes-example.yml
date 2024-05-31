@@ -1,0 +1,19 @@
+name: Update nix hashes
+
+on:
+  pull_request:
+    branches: [master, main]
+  workflow_call:
+
+concurrency:
+  group: update-nix-hashes-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  update_nix_hashes:
+    uses: SpiralP/github-reusable-workflows/.github/workflows/update-nix-hashes.yml@main
+    with:
+      npm-attribute: node
