@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
   };
 
   outputs = { nixpkgs, ... }:
@@ -14,7 +14,7 @@
         in
         {
           rust = pkgs.rustPlatform.buildRustPackage {
-            name = rustManifest.package.name;
+            pname = rustManifest.package.name;
             version = rustManifest.package.version;
 
             src = lib.sourceByRegex ./. [
@@ -39,7 +39,7 @@
           };
 
           node = pkgs.buildNpmPackage {
-            name = nodeManifest.name;
+            pname = nodeManifest.name;
             version = nodeManifest.version;
 
             src = lib.sourceByRegex ./. [
