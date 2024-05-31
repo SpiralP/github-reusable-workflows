@@ -61,10 +61,10 @@
               sd
             ];
             text = ''
-              NPM_FLAKE_PATH="$1"
+              NPM_ATTRIBUTE="$1"
               PACKAGE_LOCK_PATH="$2"
 
-              OLD_HASH="$(nix eval --no-write-lock-file --raw ".#$NPM_FLAKE_PATH.npmDepsHash")"
+              OLD_HASH="$(nix eval --no-update-lock-file --raw ".#$NPM_ATTRIBUTE.npmDepsHash")"
               NEW_HASH="$(prefetch-npm-deps "$PACKAGE_LOCK_PATH" 2>/dev/null)"
 
               echo "$OLD_HASH" "$NEW_HASH"
