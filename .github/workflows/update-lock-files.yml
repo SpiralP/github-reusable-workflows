@@ -29,6 +29,8 @@ on:
         required: false
         type: string
 
+# TODO maybe delete and recreate the lock files? `npm update` can be strange and keep deps cached
+
 jobs:
   update_lock_files:
     runs-on: ubuntu-latest
@@ -38,27 +40,34 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - run: nix flake update
       - run: git diff && git add -v .
-      - run: nix develop '.#${{ inputs.rust-attribute }}' --no-update-lock-file --print-build-logs -c cargo update
+      - name: cargo update
+        run: |
+          nix develop '.#${{ inputs.rust-attribute }}' \
+            --print-build-logs --no-update-lock-file \
+            -c cargo update
         if: ${{ inputs.rust-attribute }}
         working-directory: ${{ inputs.rust-manifest-dir }}
       - run: git diff && git add -v .
         if: ${{ inputs.rust-attribute }}
-      # TODO maybe delete lock file because `npm update` is strange
-      - run: nix develop '.#${{ inputs.npm-attribute }}' --no-update-lock-file --print-build-logs -c npm update
+      - name: npm update
+        run: |
+          nix develop '.#${{ inputs.npm-attribute }}' \
+            --print-build-logs --no-update-lock-file \
+            -c npm update
         if: ${{ inputs.npm-attribute }}
         working-directory: ${{ inputs.npm-manifest-dir }}
       - run: git diff && git add -v .
         if: ${{ inputs.npm-attribute }}
       - run: |
           nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
-            --recreate-lock-file --no-write-lock-file \
+            --print-build-logs --no-write-lock-file --recreate-lock-file \
             -- '${{ inputs.npm-attribute }}' '${{ inputs.npm-manifest-dir }}/package-lock.json'
         if: ${{ inputs.npm-attribute }}
       - run: git diff && git add -v .
         if: ${{ inputs.npm-attribute }}
       - run: |
           nix build '.#${{ inputs.flake-attribute }}' \
-            --no-update-lock-file --print-build-logs
+            --print-build-logs --no-update-lock-file
       - run: git status && git diff --cached
       - uses: peter-evans/create-pull-request@v6
         with:
