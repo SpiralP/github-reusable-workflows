@@ -33,6 +33,7 @@ jobs:
       - run: |
           nix build '.#${{ inputs.flake-attribute }}' \
             --no-update-lock-file --print-build-logs
+      - run: git status && git diff --cached
       - run: 'git commit -m "nix: update hashes" -m "$RUN_URL" || true'
         env:
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
