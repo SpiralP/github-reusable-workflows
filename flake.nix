@@ -45,10 +45,11 @@
             src = lib.sourceByRegex ./. [
               "^package-lock\.json$"
               "^package\.json$"
+              "^tsconfig\.json$"
               "^web(/.*)?$"
             ];
 
-            npmDepsHash = "sha256-uGryeQ8d8alfxI7QPxu5IG5SZKfeR9fmUT8PDDdOPMo=";
+            npmDepsHash = "sha256-+MiDQjqfXFc79hwI+JYhUluIHo6G+il1GK1AQVexQtI=";
           };
 
           update-nix-hashes = pkgs.writeShellApplication {
