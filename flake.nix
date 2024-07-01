@@ -49,7 +49,7 @@
               "^web(/.*)?$"
             ];
 
-            npmDepsHash = "sha256-w5kB3fT6voZ7kYkapb6CfLaJas2EbKeIptgDRzjP3YA=";
+            npmDepsHash = "sha256-fgrDco0cLCooTJcSwiws+dICtTwEoeoEFIKtGiLnWQo=";
           };
 
           update-nix-hashes = pkgs.writeShellApplication {
