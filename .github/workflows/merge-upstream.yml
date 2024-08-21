@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - run: git remote add upstream ${{ inputs.url }}
       # merge instead of rebase
       - run: git config pull.rebase false
