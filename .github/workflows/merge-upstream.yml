@@ -1,0 +1,36 @@
+on:
+  workflow_call:
+    inputs:
+      url:
+        description: Remote git url to pull from.
+        required: true
+        type: string
+      branch:
+        default: HEAD
+        description: Remote branch to merge.
+        required: false
+        type: string
+
+jobs:
+  merge_upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git remote add upstream ${{ inputs.url }}
+      # merge instead of rebase
+      - run: git config pull.rebase false
+      - run: git pull --allow-unrelated-histories upstream ${{ inputs.branch }}
+        env:
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          branch: merge-upstream
+          title: Merge upstream
+          body: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          commit-message: |
+            Merge upstream
+
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
