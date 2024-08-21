@@ -1,0 +1,20 @@
+name: Merge upstream
+
+on:
+  schedule:
+    - cron: "0 0 1 * *" # monthly
+  workflow_dispatch:
+
+concurrency:
+  group: merge-upstream-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge_upstream:
+    uses: SpiralP/github-reusable-workflows/.github/workflows/merge-upstream.yml@main
+    with:
+      url: https://github.com/SpiralP/github-reusable-workflows.git
