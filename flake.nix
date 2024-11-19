@@ -111,8 +111,8 @@
                 name = "github-reusable-workflows-dev-shell";
                 packages = with pkgs; [
                   clippy
-                  rustfmt
                   rust-analyzer
+                  (rustfmt.override { asNightly = true; })
                 ];
                 buildInputs = allDrvsIn "buildInputs";
                 nativeBuildInputs = allDrvsIn "nativeBuildInputs";
