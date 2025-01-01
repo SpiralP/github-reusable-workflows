@@ -17,6 +17,12 @@ on:
         description: Path to directory containing "package.json" file.
         required: false
         type: string
+      npm-update-nix-hashes:
+        default: false
+        description: |
+          Update npmDepsHash in flake.nix after running "npm update".
+        required: false
+        type: boolean
       rust-attribute:
         description: |
           Nix flake attribute path to buildRustPackage or similar output.
@@ -62,9 +68,9 @@ jobs:
           nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
             --print-build-logs --no-write-lock-file --recreate-lock-file \
             -- '${{ inputs.npm-attribute }}' '${{ inputs.npm-manifest-dir }}/package-lock.json'
-        if: ${{ inputs.npm-attribute }}
+        if: ${{ inputs.npm-attribute && inputs.npm-update-nix-hashes }}
       - run: git diff && git add -v .
-        if: ${{ inputs.npm-attribute }}
+        if: ${{ inputs.npm-attribute && inputs.npm-update-nix-hashes }}
       - run: |
           nix build '.#${{ inputs.flake-attribute }}' \
             --print-build-logs --no-update-lock-file
