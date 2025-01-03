@@ -38,7 +38,7 @@
             ];
           };
 
-          node = pkgs.buildNpmPackage {
+          node = pkgs.buildNpmPackage rec {
             pname = nodeManifest.name;
             version = nodeManifest.version;
 
@@ -49,7 +49,10 @@
               "^web(/.*)?$"
             ];
 
-            npmDepsHash = "sha256-rrzU1tYW8xmlhcImsfGDwSP1huYX5FcZnkVyi13LujI=";
+            npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+            npmDeps = pkgs.importNpmLock {
+              npmRoot = src;
+            };
           };
 
           update-nix-hashes = pkgs.writeShellApplication {
