@@ -6,6 +6,11 @@ on:
         description: Nix flake attribute path to default output to test build.
         required: false
         type: string
+      upload-build-result:
+        default: false
+        description: Upload the build result as an artifact. (named "build-result")
+        required: false
+        type: boolean
 
 jobs:
   build:
@@ -17,3 +22,8 @@ jobs:
       - run: |
           nix build '.#${{ inputs.flake-attribute }}' \
             --print-build-logs --no-update-lock-file
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload-build-result }}
+        with:
+          name: build-result
+          path: result
