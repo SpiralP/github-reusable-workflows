@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":preserveSemverRanges",
+    ":pinDevDependencies"
+  ],
+  "nix": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "matchManagers": [
+        "nix"
+      ],
+      "branchTopic": "nix"
+    },
+    {
+      "matchDepTypes": [
+        "action"
+      ],
+      "matchDepNames": [
+        "SpiralP/github-reusable-workflows"
+      ],
+      "automerge": true,
+      "automergeStrategy": "squash"
+    }
+  ]
+}
