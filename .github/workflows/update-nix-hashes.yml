@@ -23,8 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: cachix/install-nix-action@v31
       - run: |
           nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
             --print-build-logs --no-write-lock-file --recreate-lock-file \
