@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   update_lock_files:
-    uses: SpiralP/github-reusable-workflows/.github/workflows/update-lock-files.yml@0000000000000000000000000000000000000000 # main
+    uses: SpiralP/github-reusable-workflows/.github/workflows/update-lock-files.yml@f84c5fc2689c34ca84f4abe8211608924b91bb71 # main
     with:
       npm-attribute: node
       rust-attribute: rust
