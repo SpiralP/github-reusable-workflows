@@ -16,8 +16,8 @@
       "branchTopic": "nix"
     },
     {
-      "matchDepTypes": [
-        "action"
+      "matchManagers": [
+        "github-actions"
       ],
       "matchDepNames": [
         "SpiralP/github-reusable-workflows"
