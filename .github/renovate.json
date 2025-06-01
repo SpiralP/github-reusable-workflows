@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    ":preserveSemverRanges",
+    ":pinAllExceptPeerDependencies",
     ":pinDevDependencies"
   ],
   "nix": {
@@ -29,8 +29,7 @@
       "matchManagers": [
         "cargo"
       ],
-      "groupName": "cargo dependencies",
-      "rangeStrategy": "replace"
+      "groupName": "cargo dependencies"
     },
     {
       "matchManagers": [
