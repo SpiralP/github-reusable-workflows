@@ -11,12 +11,6 @@
   "packageRules": [
     {
       "matchManagers": [
-        "nix"
-      ],
-      "branchTopic": "nix"
-    },
-    {
-      "matchManagers": [
         "github-actions"
       ],
       "matchDepNames": [
@@ -24,6 +18,12 @@
       ],
       "automerge": true,
       "automergeStrategy": "squash"
+    },
+    {
+      "matchManagers": [
+        "nix"
+      ],
+      "groupName": "nix dependencies"
     },
     {
       "matchManagers": [
