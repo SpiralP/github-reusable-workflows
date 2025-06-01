@@ -39,6 +39,12 @@
         "npm"
       ],
       "groupName": "npm dependencies"
+    },
+    {
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "groupName": "lock file maintenance"
     }
   ]
 }
