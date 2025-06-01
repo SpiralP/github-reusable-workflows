@@ -5,6 +5,9 @@
     ":pinAllExceptPeerDependencies",
     ":pinDevDependencies"
   ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "nix": {
     "enabled": true
   },
