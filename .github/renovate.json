@@ -29,7 +29,8 @@
       "matchManagers": [
         "cargo"
       ],
-      "groupName": "cargo dependencies"
+      "groupName": "cargo dependencies",
+      "rangeStrategy": "replace"
     },
     {
       "matchManagers": [
