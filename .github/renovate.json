@@ -13,6 +13,13 @@
   },
   "packageRules": [
     {
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "minimumReleaseAge": "7 days"
+    },
+    {
       "matchManagers": [
         "github-actions"
       ],
