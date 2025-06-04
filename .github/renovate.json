@@ -48,6 +48,26 @@
       "groupName": "npm dependencies"
     },
     {
+      "matchManagers": [
+        "cargo"
+      ],
+      "matchJsonata": [
+        "isBreaking = true"
+      ],
+      "groupName": "cargo dependencies (breaking)",
+      "groupSlug": "cargo-dependencies-breaking"
+    },
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchJsonata": [
+        "isBreaking = true"
+      ],
+      "groupName": "npm dependencies (breaking)",
+      "groupSlug": "npm-dependencies-breaking"
+    },
+    {
       "matchUpdateTypes": [
         "lockFileMaintenance"
       ],
