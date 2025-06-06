@@ -11,6 +11,10 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: write # to push branch
+  pull-requests: write # to create pr
+
 jobs:
   merge_upstream:
     runs-on: ubuntu-latest

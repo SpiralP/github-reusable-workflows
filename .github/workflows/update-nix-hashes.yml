@@ -16,6 +16,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: write # to push branch
+
 jobs:
   update_nix_hashes:
     runs-on: ubuntu-latest

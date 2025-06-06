@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: write # to push branch
 
 jobs:
   update_nix_hashes:

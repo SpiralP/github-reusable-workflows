@@ -12,6 +12,8 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   build:
     uses: SpiralP/github-reusable-workflows/.github/workflows/build.yml@main

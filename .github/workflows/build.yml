@@ -12,6 +12,10 @@ on:
         required: false
         type: boolean
 
+# Can't restrict permissions here, or else all use cases require `actions: write`
+# permissions:
+#   actions: write # for writing artifact
+
 jobs:
   build:
     runs-on: ubuntu-latest

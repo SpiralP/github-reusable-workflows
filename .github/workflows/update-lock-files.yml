@@ -35,6 +35,10 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: write # to push branch
+  pull-requests: write # to create pr
+
 # TODO maybe delete and recreate the lock files? `npm update` can be strange and keep deps cached
 
 jobs:
