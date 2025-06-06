@@ -10,6 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  actions: write # to prune cache
   contents: write # for checkout, and to be able to create a release
 
 jobs:

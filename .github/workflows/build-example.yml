@@ -12,7 +12,9 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
-permissions: {}
+permissions:
+  actions: write # to prune cache
+  contents: read # for checkout
 
 jobs:
   build:
