@@ -9,5 +9,5 @@ permissions:
   contents: write # for checkout, and to be able to create a release
 
 jobs:
-  build:
+  release:
     uses: SpiralP/github-reusable-workflows/.github/workflows/release.yml@main
