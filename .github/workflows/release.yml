@@ -18,7 +18,7 @@ jobs:
         with:
           primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-hehe
           restore-prefixes-first-match: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
-          gc-max-store-size: 4G
+          gc-max-store-size: 5G
           purge: true
           purge-prefixes: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
           purge-created: 0
