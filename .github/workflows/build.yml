@@ -30,9 +30,7 @@ jobs:
           gc-max-store-size: 5G
           purge: true
           purge-prefixes: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
-          purge-created: 0
-          purge-last-accessed: 0
-          purge-primary-key: never
+          purge-created: 604800 # 7 days
       - run: sudo chown -R 0:0 /nix
       - run: |
           nix build '.#${{ inputs.flake-attribute }}' \
