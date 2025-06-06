@@ -55,6 +55,17 @@
             };
           };
 
+          semantic-release = pkgs.writeShellApplication {
+            name = "semantic-release";
+            runtimeInputs = with pkgs; [
+              semantic-release
+            ];
+            text = ''
+              export NODE_PATH=${pkgs.semantic-release}/lib/node_modules/semantic-release/node_modules
+              semantic-release --extends ${./.github/semantic-release.json} "$@"
+            '';
+          };
+
           update-nix-hashes = pkgs.writeShellApplication {
             name = "update-nix-hashes";
             runtimeInputs = with pkgs; [

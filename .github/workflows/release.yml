@@ -1,0 +1,19 @@
+on:
+  workflow_call:
+
+permissions:
+  contents: write # for checkout, and to be able to create a release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@17fe5fb4a23ad6cbbe47d6b3f359611ad276644c # v31
+      - run: |
+          nix run github:SpiralP/github-reusable-workflows#semantic-release \
+            --print-build-logs --no-write-lock-file --recreate-lock-file
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

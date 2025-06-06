@@ -1,0 +1,13 @@
+name: Release
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # for checkout, and to be able to create a release
+
+jobs:
+  build:
+    uses: SpiralP/github-reusable-workflows/.github/workflows/release.yml@main
