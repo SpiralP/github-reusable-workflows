@@ -21,7 +21,7 @@ jobs:
           gc-max-store-size: 5G
           purge: true
           purge-prefixes: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
-          purge-created: 0
+          purge-created: 604800 # 7 days
       - run: sudo chown -R 0:0 /nix
       - run: |
           nix run github:SpiralP/github-reusable-workflows#semantic-release \
