@@ -12,9 +12,10 @@ on:
         required: false
         type: boolean
 
-permissions:
-  actions: write # to prune cache, and for uploading artifact
-  contents: read # for checkout
+# Can't restrict permissions here, or else all use cases require `actions: write`
+# permissions:
+#   actions: write # for uploading artifact
+#   contents: read # for checkout
 
 jobs:
   build:
@@ -28,9 +29,6 @@ jobs:
           primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
           gc-max-store-size: 5G
-          purge: true
-          purge-prefixes: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
-          purge-created: 604800 # 7 days
       - run: sudo chown -R 0:0 /nix
       - run: |
           nix build '.#${{ inputs.flake-attribute }}' \

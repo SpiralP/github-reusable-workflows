@@ -13,7 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  actions: write # to prune cache
   contents: read # for checkout
 
 jobs:

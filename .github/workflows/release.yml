@@ -2,7 +2,6 @@ on:
   workflow_call:
 
 permissions:
-  actions: write # to purge cache
   contents: write # for checkout, and to be able to create a release
 
 jobs:
@@ -19,9 +18,6 @@ jobs:
           primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-hehe
           restore-prefixes-first-match: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
           gc-max-store-size: 5G
-          purge: true
-          purge-prefixes: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
-          purge-created: 604800 # 7 days
       - run: sudo chown -R 0:0 /nix
       - run: |
           nix run github:SpiralP/github-reusable-workflows#semantic-release \
