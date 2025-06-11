@@ -17,11 +17,3 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: cargo
-    directory: /
-    schedule:
-      interval: weekly
-    groups:
-      cargo-dependencies:
-        patterns:
-          - "*"

@@ -1,9 +1,0 @@
-[package]
-name = "github-reusable-workflows-rust"
-version = "0.1.0"
-edition = "2021"
-publish = false
-
-[dependencies]
-reqwest = "=0.12.20"
-tokio = { version = "=1.45.1", features = ["full"] }
