@@ -21,10 +21,20 @@
 
           semantic-release = pkgs.writeShellApplication {
             name = "semantic-release";
-            text = ''
-              export NODE_PATH=${pkgs.semantic-release}/lib/node_modules/semantic-release/node_modules
-              ${lib.getExe pkgs.semantic-release} --extends ${./semantic-release.json} "$@"
-            '';
+            text =
+              let
+                nodeModules = pkgs.importNpmLock.buildNodeModules {
+                  inherit (pkgs) nodejs;
+                  npmRoot = lib.sourceByRegex ./. [
+                    "^package-lock\.json$"
+                    "^package\.json$"
+                  ];
+                };
+              in
+              ''
+                export NODE_PATH=${nodeModules}/node_modules
+                ${nodeModules}/node_modules/.bin/semantic-release --extends ${./semantic-release.json} "$@"
+              '';
           };
 
           update-nix-hashes = pkgs.writeShellApplication {
