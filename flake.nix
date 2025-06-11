@@ -13,15 +13,17 @@
             inherit system;
           };
         in
-        {
+        rec {
+          default = pkgs.linkFarmFromDrvs "default" [
+            semantic-release
+            update-nix-hashes
+          ];
+
           semantic-release = pkgs.writeShellApplication {
             name = "semantic-release";
-            runtimeInputs = with pkgs; [
-              semantic-release
-            ];
             text = ''
               export NODE_PATH=${pkgs.semantic-release}/lib/node_modules/semantic-release/node_modules
-              semantic-release --extends ${./semantic-release.json} "$@"
+              ${lib.getExe pkgs.semantic-release} --extends ${./semantic-release.json} "$@"
             '';
           };
 

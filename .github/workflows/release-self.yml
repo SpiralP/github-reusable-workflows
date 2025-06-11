@@ -1,0 +1,17 @@
+name: Release
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # for checkout, and to be able to create a release
+
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml
