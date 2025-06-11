@@ -1,6 +1,7 @@
 {
   "name": "github-reusable-workflows-node",
   "version": "0.1.0",
+  "private": true,
   "source": "src/index.html",
   "browserslist": "defaults",
   "scripts": {
