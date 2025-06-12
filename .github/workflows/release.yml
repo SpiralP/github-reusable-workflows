@@ -19,14 +19,22 @@ jobs:
           fetch-depth: 0
       - uses: cachix/install-nix-action@17fe5fb4a23ad6cbbe47d6b3f359611ad276644c # v31
       - run: sudo chown -R $(id -u):$(id -g) /nix
+      - name: Get workflow SHA
+        id: get_workflow_sha
+        run: |
+          workflow_path="$(printf '%s' '${{ github.workflow_ref }}' | sed 's/[^/]*\/[^/]*\/\([^@]*\).*/\1/')"
+          echo "workflow_path=$workflow_path"
+          workflow_sha="$(cat "$workflow_path" | grep ' uses: SpiralP/github-reusable-workflows/' | sed 's/.*@\(\S*\).*/\1/')"
+          echo "workflow_sha=$workflow_sha"
+          echo "workflow_sha=$workflow_sha" >> "$GITHUB_OUTPUT"
       - uses: nix-community/cache-nix-action@135667ec418502fa5a3598af6fb9eb733888ce6a # v6
         with:
-          primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{ github.workflow_sha }}
+          primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.get_workflow_sha.outputs.workflow_sha }}
           restore-prefixes-first-match: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
       - run: |
-          nix run github:SpiralP/github-reusable-workflows/${{ github.workflow_sha }}#semantic-release \
+          nix run github:SpiralP/github-reusable-workflows/${{ steps.get_workflow_sha.outputs.workflow_sha }}#semantic-release \
             --print-build-logs \
             -- ${{ inputs.args }}
         env:
