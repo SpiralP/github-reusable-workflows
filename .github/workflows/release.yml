@@ -16,6 +16,21 @@ on:
         description: Path to a config file for extending semantic-release.
         required: false
         type: string
+      app-id:
+        default: ""
+        description: GitHub App ID
+        required: false
+        type: string
+      private-key:
+        default: ""
+        description: GitHub App private key
+        required: false
+        type: string
+      token:
+        default: ""
+        description: GitHub token
+        required: false
+        type: string
 
 permissions:
   contents: write # for checkout, and to be able to create a release
@@ -48,6 +63,12 @@ jobs:
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
+      - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2
+        if: ${{ inputs.token == '' && inputs.app-id != '' && inputs.private-key != '' }}
+        id: app-token
+        with:
+          app-id: ${{ inputs.app-id }}
+          private-key: ${{ inputs.private-key }}
       - name: Release
         run: |
           EXTENDS="${{ inputs.extends }}" \
@@ -55,4 +76,4 @@ jobs:
               --print-build-logs \
               -- ${{ inputs.args }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ (inputs.token != '' && inputs.token) || (inputs.app-id != '' && inputs.private-key != '' && steps.app-token.outputs.token) || secrets.GITHUB_TOKEN }}
