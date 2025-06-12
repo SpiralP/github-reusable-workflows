@@ -1,6 +1,11 @@
 on:
   workflow_call:
     inputs:
+      runner:
+        default: "ubuntu-latest"
+        description: Runner to use for the job.
+        required: false
+        type: string
       args:
         default: ""
         description: Arguments to pass to semantic-release.
@@ -12,7 +17,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
