@@ -1,5 +1,11 @@
 on:
   workflow_call:
+    inputs:
+      args:
+        default: ""
+        description: Arguments to pass to semantic-release.
+        required: false
+        type: string
 
 permissions:
   contents: write # for checkout, and to be able to create a release
@@ -21,6 +27,7 @@ jobs:
       - run: sudo chown -R 0:0 /nix
       - run: |
           nix run github:SpiralP/github-reusable-workflows#semantic-release \
-            --print-build-logs --no-write-lock-file --recreate-lock-file
+            --print-build-logs \
+            -- ${{ inputs.args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
