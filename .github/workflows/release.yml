@@ -27,8 +27,9 @@ on:
         description: GitHub token
         required: false
 
-permissions:
-  contents: write # for checkout, and to be able to create a release
+# Don't restrict permissions here, since you can pass a custom token
+# permissions:
+#   contents: write # for checkout, and to be able to create a release
 
 jobs:
   release:
