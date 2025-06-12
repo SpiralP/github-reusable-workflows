@@ -16,6 +16,13 @@ on:
         description: Path to a config file for extending semantic-release.
         required: false
         type: string
+      replace-files:
+        default: ""
+        description: |
+          List of files (separated by line) to replace versions in.
+          A commit will be created for this release.
+        required: false
+        type: string
     secrets:
       app-id:
         description: GitHub App ID
@@ -70,9 +77,13 @@ jobs:
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - name: Release
         run: |
-          EXTENDS="${{ inputs.extends }}" \
-            nix run github:SpiralP/github-reusable-workflows/${{ steps.get_workflow_sha.outputs.workflow_sha }}#semantic-release \
-              --print-build-logs \
-              -- ${{ inputs.args }}
+          export REPO_NAME="$(echo "$REPO" | cut -d '/' -f 2)"
+          nix run "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
+            --print-build-logs \
+            -- ${{ inputs.args }}
         env:
+          EXTENDS: ${{ inputs.extends }}
           GITHUB_TOKEN: ${{ secrets.token || steps.app-token.outputs.token || github.token }}
+          REPLACE_FILES: ${{ inputs.replace-files }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_SHA: ${{ steps.get_workflow_sha.outputs.workflow_sha }}

@@ -15,9 +15,45 @@
         in
         rec {
           default = pkgs.linkFarmFromDrvs "default" [
+            replace-versions
             semantic-release
             update-nix-hashes
           ];
+
+          replace-versions = pkgs.writeShellApplication {
+            name = "replace-versions";
+            runtimeInputs = with pkgs; [
+              coreutils
+              gnugrep
+              sd
+            ];
+            text = ''
+              NEW_VERSION="$1"
+              test -z "$NEW_VERSION" && echo 'NEW_VERSION missing' && exit 1
+              test -z "$REPLACE_FILES" && echo 'REPLACE_FILES missing' && exit 1
+              test -z "$REPO_NAME" && echo 'REPO_NAME missing' && exit 1
+
+              IFS=$'\n'
+              for path in $REPLACE_FILES; do
+                echo "Replacing version in $path"
+                filename="$(basename "$path")"
+                if test "$filename" = "Cargo.toml" || test "$filename" = "Cargo.lock"; then
+                  sd \
+                    "(name = \"''${REPO_NAME}[^\"]*\"\nversion = \")[^\"]+(\")" \
+                    "\''${1}''${NEW_VERSION}\''${2}" \
+                    "$path"
+                elif test "$filename" = "package.json" || test "$filename" = "package-lock.json"; then
+                  sd \
+                    "(\s+\"name\": \"''${REPO_NAME}[^\"]*\",\n\s+\"version\": \")[^\"]+(\")" \
+                    "\''${1}''${NEW_VERSION}\''${2}" \
+                    "$path"
+                else
+                  echo "Unsupported filename: $filename"
+                  exit 1
+                fi
+              done
+            '';
+          };
 
           semantic-release = pkgs.writeShellApplication {
             name = "semantic-release";
@@ -36,19 +72,58 @@
                 };
               in
               ''
-                merged_extends=${./semantic-release.json}
-                if test -n "''${EXTENDS-}"; then
-                  temp="$(mktemp --suffix .json)"
-                  trap 'rm -f "$temp"' EXIT
+                merged_extends="$(mktemp --suffix .json)"
+                trap 'rm -f "$merged_extends"' EXIT
 
+                cat ${./semantic-release.json} > "$merged_extends"
+
+                if test -n "''${REPLACE_FILES-}"; then
+                  temp1="$(mktemp)"
+                  jq -n \
+                    --arg script "nix run github:SpiralP/github-reusable-workflows/''${WORKFLOW_SHA-main}#replace-versions --print-build-logs --" \
+                    --arg assets "$REPLACE_FILES" \
+                    '{
+                      plugins: [
+                        [
+                          "@semantic-release/exec",
+                          {
+                            prepareCmd: "\($script) ''${nextRelease.version}"
+                          }
+                        ],
+                        [
+                          "@semantic-release/git",
+                          {
+                            assets: $assets | split("\n") | map(select(length > 0))
+                          }
+                        ]
+                      ]
+                    }' > "$temp1"
+                  
+                  temp2="$(mktemp)"
+                  jq -s \
+                    '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
+                    "$merged_extends" \
+                    "$temp1" \
+                    > "$temp2"
+                  rm -f "$temp1"
+
+                  cat "$temp2" > "$merged_extends"
+                  rm -f "$temp2"
+                fi
+
+                if test -n "''${EXTENDS-}"; then
+                  temp1="$(mktemp)"
                   jq -s \
                     '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
                     "$merged_extends" \
                     "$EXTENDS" \
-                    > "$temp"
-                  merged_extends="$temp"
+                    > "$temp1"
+                  cat "$temp1" > "$merged_extends"
+                  rm -f "$temp1"
                 fi
                 unset EXTENDS
+
+                jq . "$merged_extends"
 
                 export NODE_PATH=${nodeModules}/node_modules
                 ${nodeModules}/node_modules/.bin/semantic-release --extends "$merged_extends" "$@"
