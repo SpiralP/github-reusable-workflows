@@ -34,9 +34,18 @@ jobs:
   release:
     runs-on: ${{ inputs.runs-on }}
     steps:
+      - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2
+        id: app-token
+        if: ${{ env.OK == 'true-true-true' }}
+        env:
+          OK: ${{ secrets.token == '' }}-${{ secrets.app-id != '' }}-${{ secrets.app-private-key != '' }}
+        with:
+          app-id: ${{ secrets.app-id }}
+          private-key: ${{ secrets.app-private-key }}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.token || steps.app-token.outputs.token || github.token }}
       - uses: cachix/install-nix-action@17fe5fb4a23ad6cbbe47d6b3f359611ad276644c # v31
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - run: sudo chown -R $(id -u):$(id -g) /nix
@@ -58,14 +67,6 @@ jobs:
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
-      - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2
-        id: app-token
-        if: ${{ env.OK == 'true-true-true' }}
-        env:
-          OK: ${{ secrets.token == '' }}-${{ secrets.app-id != '' }}-${{ secrets.app-private-key != '' }}
-        with:
-          app-id: ${{ secrets.app-id }}
-          private-key: ${{ secrets.app-private-key }}
       - name: Release
         run: |
           EXTENDS="${{ inputs.extends }}" \
@@ -73,4 +74,4 @@ jobs:
               --print-build-logs \
               -- ${{ inputs.args }}
         env:
-          GITHUB_TOKEN: ${{ secrets.token || steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.token || steps.app-token.outputs.token || github.token }}
