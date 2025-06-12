@@ -21,6 +21,10 @@
 
           semantic-release = pkgs.writeShellApplication {
             name = "semantic-release";
+            runtimeInputs = with pkgs; [
+              coreutils
+              jq
+            ];
             text =
               let
                 nodeModules = pkgs.importNpmLock.buildNodeModules {
@@ -32,8 +36,22 @@
                 };
               in
               ''
+                merged_extends=${./semantic-release.json}
+                if test -n "''${EXTENDS-}"; then
+                  temp="$(mktemp --suffix .json)"
+                  trap 'rm -f "$temp"' EXIT
+
+                  jq -s \
+                    '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
+                    "$merged_extends" \
+                    "$EXTENDS" \
+                    > "$temp"
+                  merged_extends="$temp"
+                fi
+                unset EXTENDS
+
                 export NODE_PATH=${nodeModules}/node_modules
-                ${nodeModules}/node_modules/.bin/semantic-release --extends ${./semantic-release.json} "$@"
+                ${nodeModules}/node_modules/.bin/semantic-release --extends "$merged_extends" "$@"
               '';
           };
 

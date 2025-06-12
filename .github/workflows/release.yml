@@ -11,6 +11,11 @@ on:
         description: Arguments to pass to semantic-release.
         required: false
         type: string
+      extends:
+        default: ""
+        description: Path to a config file for extending semantic-release.
+        required: false
+        type: string
 
 permissions:
   contents: write # for checkout, and to be able to create a release
@@ -44,8 +49,9 @@ jobs:
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - run: |
-          nix run github:SpiralP/github-reusable-workflows/${{ steps.get_workflow_sha.outputs.workflow_sha }}#semantic-release \
-            --print-build-logs \
-            -- ${{ inputs.args }}
+          EXTENDS="${{ inputs.extends }}" \
+            nix run github:SpiralP/github-reusable-workflows/${{ steps.get_workflow_sha.outputs.workflow_sha }}#semantic-release \
+              --print-build-logs \
+              -- ${{ inputs.args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
