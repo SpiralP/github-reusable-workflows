@@ -1,6 +1,11 @@
 on:
   workflow_call:
     inputs:
+      runner:
+        default: ubuntu-latest
+        description: Runner to use for the job.
+        required: false
+        type: string
       flake-attribute:
         default: default
         description: Nix flake attribute path to default output to test build.
@@ -19,7 +24,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: cachix/install-nix-action@17fe5fb4a23ad6cbbe47d6b3f359611ad276644c # v31

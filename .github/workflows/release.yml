@@ -2,7 +2,7 @@ on:
   workflow_call:
     inputs:
       runner:
-        default: "ubuntu-latest"
+        default: ubuntu-latest
         description: Runner to use for the job.
         required: false
         type: string
