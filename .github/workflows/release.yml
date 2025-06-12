@@ -26,7 +26,7 @@ jobs:
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
       - run: |
-          nix run github:SpiralP/github-reusable-workflows#semantic-release \
+          nix run github:SpiralP/github-reusable-workflows/${{ github.workflow_sha }}#semantic-release \
             --print-build-logs \
             -- ${{ inputs.args }}
         env:
