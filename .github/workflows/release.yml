@@ -48,7 +48,8 @@ jobs:
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
-      - run: |
+      - name: Release
+        run: |
           EXTENDS="${{ inputs.extends }}" \
             nix run github:SpiralP/github-reusable-workflows/${{ steps.get_workflow_sha.outputs.workflow_sha }}#semantic-release \
               --print-build-logs \
