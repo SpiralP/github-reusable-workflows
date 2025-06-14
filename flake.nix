@@ -93,7 +93,8 @@
                         [
                           "@semantic-release/git",
                           {
-                            assets: $assets | split("\n") | map(select(length > 0))
+                            assets: $assets | split("\n") | map(select(length > 0)),
+                            message: "chore(release): ''${nextRelease.version}\n\n''${nextRelease.notes}"
                           }
                         ]
                       ]
