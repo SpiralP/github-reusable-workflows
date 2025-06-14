@@ -2,8 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    ":pinAllExceptPeerDependencies",
-    ":pinDevDependencies"
+    ":pinAllExceptPeerDependencies"
   ],
   "lockFileMaintenance": {
     "enabled": true
@@ -11,6 +10,7 @@
   "nix": {
     "enabled": true
   },
+  "automergeStrategy": "squash",
   "packageRules": [
     {
       "matchUpdateTypes": [
@@ -26,8 +26,7 @@
       "matchDepNames": [
         "SpiralP/github-reusable-workflows"
       ],
-      "automerge": true,
-      "automergeStrategy": "squash"
+      "automerge": true
     },
     {
       "matchManagers": [
