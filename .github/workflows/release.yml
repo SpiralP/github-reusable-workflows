@@ -61,12 +61,14 @@ jobs:
       - name: Get workflow SHA
         id: get_workflow_sha
         run: |
-          workflow_path="$(printf '%s' '${{ github.workflow_ref }}' | sed 's/[^/]*\/[^/]*\/\([^@]*\).*/\1/')"
+          workflow_path="$(printf '%s' "$GITHUB_WORKFLOW_REF" | sed 's/[^/]*\/[^/]*\/\([^@]*\).*/\1/')"
           echo "workflow_path=$workflow_path"
           workflow_sha="$(cat "$workflow_path" | grep ' uses: SpiralP/github-reusable-workflows/' | sed 's/.*@\(\S*\).*/\1/')"
           test -z "$workflow_sha" && workflow_sha="main"
           echo "workflow_sha=$workflow_sha"
           echo "workflow_sha=$workflow_sha" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
       - uses: nix-community/cache-nix-action@135667ec418502fa5a3598af6fb9eb733888ce6a # v6
         if: ${{ inputs.runs-on != 'self-hosted' }}
         with:
