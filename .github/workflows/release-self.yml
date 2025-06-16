@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false # do not cancel in-progress jobs
 
 permissions:
   contents: write # for checkout, and to be able to create a release
