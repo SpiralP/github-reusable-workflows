@@ -4,73 +4,49 @@
     "config:best-practices",
     ":pinAllExceptPeerDependencies"
   ],
+  "automergeStrategy": "squash",
+  "cargo": {
+    "enabled": true,
+    "groupName": "cargo dependencies"
+  },
+  "github-actions": {
+    "enabled": true,
+    "packageRules": [
+      {
+        "matchDepNames": [
+          "SpiralP/github-reusable-workflows"
+        ],
+        "automerge": true
+      }
+    ]
+  },
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": true,
+    "groupName": "lock file maintenance"
+  },
+  "major": {
+    "enabled": true,
+    "minimumReleaseAge": "7 days"
+  },
+  "minor": {
+    "enabled": true,
+    "minimumReleaseAge": "7 days"
   },
   "nix": {
-    "enabled": true
+    "enabled": true,
+    "groupName": "nix dependencies"
   },
-  "automergeStrategy": "squash",
+  "npm": {
+    "enabled": true,
+    "groupName": "npm dependencies"
+  },
   "packageRules": [
     {
-      "matchUpdateTypes": [
-        "major",
-        "minor"
-      ],
-      "minimumReleaseAge": "7 days"
-    },
-    {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchDepNames": [
-        "SpiralP/github-reusable-workflows"
-      ],
-      "automerge": true
-    },
-    {
-      "matchManagers": [
-        "nix"
-      ],
-      "groupName": "nix dependencies"
-    },
-    {
-      "matchManagers": [
-        "cargo"
-      ],
-      "groupName": "cargo dependencies"
-    },
-    {
-      "matchManagers": [
-        "npm"
-      ],
-      "groupName": "npm dependencies"
-    },
-    {
-      "matchManagers": [
-        "cargo"
-      ],
       "matchJsonata": [
         "isBreaking = true"
       ],
-      "groupName": "cargo dependencies (breaking)",
-      "groupSlug": "cargo-dependencies-breaking"
-    },
-    {
-      "matchManagers": [
-        "npm"
-      ],
-      "matchJsonata": [
-        "isBreaking = true"
-      ],
-      "groupName": "npm dependencies (breaking)",
-      "groupSlug": "npm-dependencies-breaking"
-    },
-    {
-      "matchUpdateTypes": [
-        "lockFileMaintenance"
-      ],
-      "groupName": "lock file maintenance"
+      "groupName": "{{manager}} dependencies (breaking)",
+      "groupSlug": "{{manager}}-dependencies-breaking"
     }
   ]
 }
