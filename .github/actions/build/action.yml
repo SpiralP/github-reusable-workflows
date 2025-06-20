@@ -1,0 +1,25 @@
+name: build
+description: ""
+
+inputs:
+  flake-attribute:
+    default: default
+    description: Nix flake attribute path to default output to test build.
+    required: false
+  upload-build-result:
+    description: Upload the build result as an artifact. (named "build-result")
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        nix build '.?submodules=1#${{ inputs.flake-attribute }}' \
+          --print-build-logs --no-update-lock-file
+      shell: bash
+
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      if: ${{ inputs.upload-build-result == 'true' }}
+      with:
+        name: build-result
+        path: result
