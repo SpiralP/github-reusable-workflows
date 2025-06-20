@@ -31,7 +31,7 @@
               NEW_VERSION="$1"
               test -z "$NEW_VERSION" && echo 'NEW_VERSION missing' && exit 1
               test -z "$REPLACE_FILES" && echo 'REPLACE_FILES missing' && exit 1
-              test -z "$REPO_NAME" && echo 'REPO_NAME missing' && exit 1
+              test -z "$PACKAGE_NAME" && echo 'PACKAGE_NAME missing' && exit 1
 
               IFS=$'\n'
               for path in $REPLACE_FILES; do
@@ -39,12 +39,12 @@
                 filename="$(basename "$path")"
                 if test "$filename" = "Cargo.toml" || test "$filename" = "Cargo.lock"; then
                   sd \
-                    "(name = \"''${REPO_NAME}[^\"]*\"\nversion = \")[^\"]+(\")" \
+                    "(name = \"''${PACKAGE_NAME}[^\"]*\"\nversion = \")[^\"]+(\")" \
                     "\''${1}''${NEW_VERSION}\''${2}" \
                     "$path"
                 elif test "$filename" = "package.json" || test "$filename" = "package-lock.json"; then
                   sd \
-                    "(\s+\"name\": \"''${REPO_NAME}[^\"]*\",\n\s+\"version\": \")[^\"]+(\")" \
+                    "(\s+\"name\": \"''${PACKAGE_NAME}[^\"]*\",\n\s+\"version\": \")[^\"]+(\")" \
                     "\''${1}''${NEW_VERSION}\''${2}" \
                     "$path"
                 else

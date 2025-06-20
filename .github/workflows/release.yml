@@ -23,6 +23,11 @@ on:
           A commit will be created for this release.
         required: false
         type: string
+      package-name:
+        default: ""
+        description: Name of the package to replace versions for.
+        required: false
+        type: string
     secrets:
       app-id:
         description: GitHub App ID
@@ -79,13 +84,15 @@ jobs:
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - name: Release
         run: |
-          export REPO_NAME="$(echo "$REPO" | cut -d '/' -f 2)"
+          REPO_NAME="$(echo "$REPO" | cut -d '/' -f 2)"
+          export PACKAGE_NAME="${PACKAGE_NAME:-$REPO_NAME}"
           nix run "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
             --print-build-logs \
             -- ${{ inputs.args }}
         env:
           EXTENDS: ${{ inputs.extends }}
           GITHUB_TOKEN: ${{ secrets.token || steps.app-token.outputs.token || github.token }}
+          PACKAGE_NAME: ${{ inputs.package-name }}
           REPLACE_FILES: ${{ inputs.replace-files }}
           REPO: ${{ github.repository }}
           WORKFLOW_SHA: ${{ steps.get_workflow_sha.outputs.workflow_sha }}
