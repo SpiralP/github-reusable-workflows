@@ -40,7 +40,7 @@ jobs:
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - run: |
-          nix build '.#${{ inputs.flake-attribute }}' \
+          nix build '.?submodules=1#${{ inputs.flake-attribute }}' \
             --print-build-logs --no-update-lock-file
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ inputs.upload-build-result }}
