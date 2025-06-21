@@ -1,9 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices",
-    ":pinAllExceptPeerDependencies"
-  ],
+  "extends": ["config:best-practices", ":pinAllExceptPeerDependencies"],
   "automergeStrategy": "squash",
   "cargo": {
     "enabled": true,
@@ -13,9 +10,7 @@
     "enabled": true,
     "packageRules": [
       {
-        "matchDepNames": [
-          "SpiralP/github-reusable-workflows"
-        ],
+        "matchDepNames": ["SpiralP/github-reusable-workflows"],
         "automerge": true
       }
     ]
@@ -33,6 +28,10 @@
     "enabled": true,
     "minimumReleaseAge": "7 days"
   },
+  "patch": {
+    "enabled": true,
+    "minimumReleaseAge": "3 days"
+  },
   "nix": {
     "enabled": true,
     "groupName": "nix dependencies"
@@ -43,9 +42,7 @@
   },
   "packageRules": [
     {
-      "matchJsonata": [
-        "isBreaking = true"
-      ],
+      "matchJsonata": ["isBreaking = true"],
       "groupName": "{{manager}} dependencies (breaking)",
       "groupSlug": "{{manager}}-dependencies-breaking"
     }
