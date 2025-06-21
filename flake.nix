@@ -24,6 +24,7 @@
             name = "replace-versions";
             runtimeInputs = with pkgs; [
               coreutils
+              git
               gnugrep
               sd
             ];
@@ -49,6 +50,11 @@
                     "$path"
                 else
                   echo "Unsupported filename: $filename"
+                  exit 1
+                fi
+
+                if git diff --exit-code -- "$path"; then
+                  echo "Error: $path was not modified!"
                   exit 1
                 fi
               done
