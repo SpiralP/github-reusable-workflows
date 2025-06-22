@@ -104,7 +104,7 @@ jobs:
         run: |
           workflow_path="$(printf '%s' "$GITHUB_WORKFLOW_REF" | sed 's/[^/]*\/[^/]*\/\([^@]*\).*/\1/')"
           echo "workflow_path=$workflow_path"
-          workflow_sha="$(cat "$workflow_path" | grep ' uses: SpiralP/github-reusable-workflows/' | sed 's/.*@\(\S*\).*/\1/')"
+          workflow_sha="$(cat "$workflow_path" | grep -F ' uses: SpiralP/github-reusable-workflows/.github/workflows/release.yml' | sed 's/.*@\(\S*\).*/\1/')"
           test -z "$workflow_sha" && workflow_sha="main"
           echo "workflow-sha=$workflow_sha" | tee -a "$GITHUB_OUTPUT"
         env:
