@@ -28,6 +28,11 @@ on:
         description: Name of the package to replace versions for.
         required: false
         type: string
+      version-metadata:
+        default: ""
+        description: Extra metadata to add to version number (v1.2.3+metadata)
+        required: false
+        type: string
     secrets:
       app-id:
         description: GitHub App ID
@@ -95,4 +100,5 @@ jobs:
           PACKAGE_NAME: ${{ inputs.package-name }}
           REPLACE_FILES: ${{ inputs.replace-files }}
           REPO: ${{ github.repository }}
+          VERSION_METADATA: ${{ inputs.version-metadata }}
           WORKFLOW_SHA: ${{ steps.get_workflow_sha.outputs.workflow_sha }}

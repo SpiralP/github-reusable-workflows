@@ -5,6 +5,11 @@ test -z "$NEW_VERSION" && echo 'NEW_VERSION missing' && exit 1
 test -z "$REPLACE_FILES" && echo 'REPLACE_FILES missing' && exit 1
 test -z "$PACKAGE_NAME" && echo 'PACKAGE_NAME missing' && exit 1
 
+if test -n "${VERSION_METADATA:-}"; then
+  version_metadata_clean=$(echo "$VERSION_METADATA" | tr ' ' '.')
+  NEW_VERSION="$NEW_VERSION+$version_metadata_clean"
+fi
+
 IFS="$(printf '\n')"
 for path in $REPLACE_FILES; do
   echo "Replacing version in $path"
