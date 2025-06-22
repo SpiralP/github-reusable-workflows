@@ -109,6 +109,11 @@ jobs:
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
+      - run: |
+          nix build "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
+            --print-build-logs --print-out-paths --out-link "$TMPDIR/semantic-release"
+        env:
+          WORKFLOW_SHA: ${{ steps.get-workflow-sha.outputs.workflow-sha }}
       - name: Release
         id: release
         run: |
@@ -116,9 +121,9 @@ jobs:
           export PACKAGE_NAME="${PACKAGE_NAME:-$REPO_NAME}"
           export VERSION_OUTPUT_FILE="$(mktemp)"
           export TAG_OUTPUT_FILE="$(mktemp)"
-          nix run --print-build-logs \
-            "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
-            -- ${{ inputs.args }}
+
+          "$TMPDIR/semantic-release/bin/semantic-release" ${{ inputs.args }}
+
           echo "version=$(cat "$VERSION_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
           echo "tag=$(cat "$TAG_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
         env:
