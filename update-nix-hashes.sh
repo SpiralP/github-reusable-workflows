@@ -4,7 +4,7 @@ NPM_ATTRIBUTE="$1"
 PACKAGE_LOCK_PATH="$2"
 
 OLD_HASH="$(nix eval --no-update-lock-file --raw ".#$NPM_ATTRIBUTE.npmDepsHash")"
-NEW_HASH="$(prefetch-npm-deps "$PACKAGE_LOCK_PATH" 2>/dev/null)"
+NEW_HASH="$(prefetch-npm-deps "$PACKAGE_LOCK_PATH" 2> /dev/null)"
 
 echo "$OLD_HASH" "$NEW_HASH"
 test -z "$OLD_HASH" && exit 1

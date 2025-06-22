@@ -64,6 +64,9 @@ jobs:
     environment:
       name: ${{ inputs.environment-name }}
       url: ${{ inputs.environment-url }}
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         id: app-token
@@ -100,12 +103,17 @@ jobs:
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - name: Release
+        id: release
         run: |
           REPO_NAME="$(echo "$REPO" | cut -d '/' -f 2)"
           export PACKAGE_NAME="${PACKAGE_NAME:-$REPO_NAME}"
-          nix run "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
-            --print-build-logs \
+          export VERSION_OUTPUT_FILE="$(mktemp)"
+          export TAG_OUTPUT_FILE="$(mktemp)"
+          nix run --print-build-logs \
+            "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
             -- ${{ inputs.args }}
+          echo "version=$(cat "$VERSION_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
+          echo "tag=$(cat "$TAG_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
         env:
           EXTENDS: ${{ inputs.extends }}
           GITHUB_TOKEN: ${{ secrets.token || steps.app-token.outputs.token || github.token }}

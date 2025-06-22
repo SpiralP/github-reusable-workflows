@@ -3,13 +3,13 @@
 merged_extends="$(mktemp --suffix .json)"
 trap 'rm -f "$merged_extends"' EXIT
 
-cat "$BASE_CONFIG_PATH" >"$merged_extends"
+cat "$BASE_CONFIG_PATH" > "$merged_extends"
 unset BASE_CONFIG_PATH
 
 if test -n "${REPLACE_FILES:-}"; then
   temp1="$(mktemp)"
   jq -n \
-    --arg script "nix run github:SpiralP/github-reusable-workflows/${WORKFLOW_SHA:-main}#replace-versions --print-build-logs --" \
+    --arg script "nix run --print-build-logs github:SpiralP/github-reusable-workflows/${WORKFLOW_SHA:-main}#replace-versions --" \
     --arg assets "$REPLACE_FILES" \
     '{
       plugins: [
@@ -27,17 +27,17 @@ if test -n "${REPLACE_FILES:-}"; then
           }
         ]
       ]
-    }' >"$temp1"
+    }' > "$temp1"
 
   temp2="$(mktemp)"
   jq -s \
     '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
     "$merged_extends" \
     "$temp1" \
-    >"$temp2"
+    > "$temp2"
   rm -f "$temp1"
 
-  cat "$temp2" >"$merged_extends"
+  cat "$temp2" > "$merged_extends"
   rm -f "$temp2"
 fi
 
@@ -47,8 +47,8 @@ if test -n "${EXTENDS:-}"; then
     '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
     "$merged_extends" \
     "$EXTENDS" \
-    >"$temp1"
-  cat "$temp1" >"$merged_extends"
+    > "$temp1"
+  cat "$temp1" > "$merged_extends"
   rm -f "$temp1"
 fi
 unset EXTENDS

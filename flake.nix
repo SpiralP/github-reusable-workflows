@@ -8,6 +8,14 @@
       inherit (nixpkgs) lib;
 
       makePackages = (pkgs: {
+        release-success = pkgs.writeShellApplication {
+          name = "release-success";
+          runtimeInputs = with pkgs; [
+            coreutils
+          ];
+          text = builtins.readFile ./release-success.sh;
+        };
+
         replace-versions = pkgs.writeShellApplication {
           name = "replace-versions";
           runtimeInputs = with pkgs; [
