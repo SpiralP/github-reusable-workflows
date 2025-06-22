@@ -47,11 +47,9 @@ if test "${CARGO_PUBLISH:-}" = "true"; then
     '{
       plugins: [
         [
-          "semantic-release-cargo",
+          "@semantic-release/exec",
           {
-            "check": false,
-            "publish": true,
-            "publishArgs": ["--no-verify"]
+            publishCmd: "cargo publish --no-verify"
           }
         ]
       ]
