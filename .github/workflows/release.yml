@@ -33,6 +33,11 @@ on:
         description: Extra metadata to add to version number (v1.2.3+metadata)
         required: false
         type: string
+      environment:
+        default: ""
+        description: Environment to use for the job.
+        required: false
+        type: string
     secrets:
       app-id:
         description: GitHub App ID
@@ -51,6 +56,7 @@ on:
 jobs:
   release:
     runs-on: ${{ inputs.runs-on }}
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         id: app-token
