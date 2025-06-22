@@ -43,6 +43,13 @@ on:
         description: URL of the environment to use for the job.
         required: false
         type: string
+    outputs:
+      tag:
+        description: The tag created by the release.
+        value: ${{ jobs.release.outputs.tag }}
+      version:
+        description: The version created by the release.
+        value: ${{ jobs.release.outputs.version }}
     secrets:
       app-id:
         description: GitHub App ID
