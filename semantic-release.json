@@ -26,7 +26,7 @@
     [
       "@semantic-release/exec",
       {
-        "successCmd": "nix run --print-build-logs github:SpiralP/github-reusable-workflows/${env.WORKFLOW_SHA || 'main'}#release-success -- ${nextRelease.version} ${nextRelease.gitTag}"
+        "successCmd": "nix run --print-build-logs github:SpiralP/github-reusable-workflows/\\${WORKFLOW_SHA:-main}#release-success -- ${nextRelease.version} ${nextRelease.gitTag}"
       }
     ]
   ]
