@@ -10,16 +10,17 @@ if test -n "${VERSION_METADATA:-}"; then
   NEW_VERSION="$NEW_VERSION+$version_metadata_clean"
 fi
 
-IFS="$(printf '\n')"
+IFS=$'\n'
 for path in $REPLACE_FILES; do
-  echo "Replacing version in $path"
   filename="$(basename "$path")"
   if test "$filename" = "Cargo.toml" || test "$filename" = "Cargo.lock"; then
+    echo "Replacing version in $path"
     sd \
       "(name = \"${PACKAGE_NAME}[^\"]*\"\nversion = \")[^\"]+(\")" \
       "\${1}${NEW_VERSION}\${2}" \
       "$path"
   elif test "$filename" = "package.json" || test "$filename" = "package-lock.json"; then
+    echo "Replacing version in $path"
     sd \
       "(\s+\"name\": \"${PACKAGE_NAME}[^\"]*\",\n\s+\"version\": \")[^\"]+(\")" \
       "\${1}${NEW_VERSION}\${2}" \
