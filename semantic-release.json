@@ -18,6 +18,7 @@
         "failComment": false,
         "failCommentCondition": false,
         "failTitle": false,
+        "releaseNameTemplate": "${nextRelease.name}${env.VERSION_METADATA ? ' (' + env.VERSION_METADATA + ')' : ''}",
         "successComment": false,
         "successCommentCondition": false
       }
