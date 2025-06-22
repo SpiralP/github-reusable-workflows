@@ -43,6 +43,11 @@ on:
         description: URL of the environment to use for the job.
         required: false
         type: string
+      cargo-publish:
+        default: false
+        description: Whether to publish a Rust crate to crates.io
+        required: false
+        type: boolean
     outputs:
       tag:
         description: The tag created by the release.
@@ -61,7 +66,7 @@ on:
         description: GitHub token
         required: false
       cargo-registry-token:
-        description: Cargo registry token for publishing rust crates.
+        description: Cargo registry token for publishing Rust crates to crates.io
         required: false
 
 # Don't restrict permissions here, since you can pass a custom token
@@ -130,6 +135,7 @@ jobs:
           echo "version=$(cat "$VERSION_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
           echo "tag=$(cat "$TAG_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
         env:
+          CARGO_PUBLISH: ${{ inputs.cargo-publish }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.cargo-registry-token }}
           EXTENDS: ${{ inputs.extends }}
           GITHUB_TOKEN: ${{ secrets.token || steps.app-token.outputs.token || github.token }}

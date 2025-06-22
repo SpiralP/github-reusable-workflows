@@ -41,6 +41,34 @@ if test -n "${REPLACE_FILES:-}"; then
   rm -f "$temp2"
 fi
 
+if test "${CARGO_PUBLISH:-}" = "true"; then
+  temp1="$(mktemp)"
+  jq -n \
+    '{
+      plugins: [
+        [
+          "semantic-release-cargo",
+          {
+            "check": false,
+            "publish": true,
+            "publishArgs": ["--no-verify"]
+          }
+        ]
+      ]
+    }' > "$temp1"
+
+  temp2="$(mktemp)"
+  jq -s \
+    '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
+    "$merged_extends" \
+    "$temp1" \
+    > "$temp2"
+  rm -f "$temp1"
+
+  cat "$temp2" > "$merged_extends"
+  rm -f "$temp2"
+fi
+
 if test -n "${EXTENDS:-}"; then
   temp1="$(mktemp)"
   jq -s \
