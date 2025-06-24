@@ -123,6 +123,7 @@ jobs:
           nix build "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
             --print-build-logs --print-out-paths --out-link "$TMPDIR/semantic-release"
         env:
+          TMPDIR: ${{ runner.temp }}
           WORKFLOW_SHA: ${{ steps.get-workflow-sha.outputs.workflow-sha }}
       - name: Release
         id: release
@@ -144,5 +145,6 @@ jobs:
           PACKAGE_NAME: ${{ inputs.package-name }}
           REPLACE_FILES: ${{ inputs.replace-files }}
           REPO: ${{ github.repository }}
+          TMPDIR: ${{ runner.temp }}
           VERSION_METADATA: ${{ inputs.version-metadata }}
           WORKFLOW_SHA: ${{ steps.get-workflow-sha.outputs.workflow-sha }}
