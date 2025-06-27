@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices", ":pinAllExceptPeerDependencies"],
+  "extends": [
+    "config:best-practices",
+    ":pinAllExceptPeerDependencies",
+    ":automergeTypes"
+  ],
   "automergeStrategy": "squash",
   "cargo": {
     "enabled": true,
