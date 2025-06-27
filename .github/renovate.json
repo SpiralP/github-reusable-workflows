@@ -36,6 +36,7 @@
     "enabled": true,
     "minimumReleaseAge": "3 days"
   },
+  "semanticCommits": "enabled",
   "nix": {
     "enabled": true,
     "groupName": "nix dependencies"
