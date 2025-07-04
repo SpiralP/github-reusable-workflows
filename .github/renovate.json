@@ -3,7 +3,9 @@
   "extends": [
     "config:best-practices",
     ":pinAllExceptPeerDependencies",
-    ":automergeTypes"
+    ":automergeTypes",
+    ":semanticCommits",
+    ":rebaseStalePrs"
   ],
   "automergeStrategy": "squash",
   "cargo": {
@@ -36,7 +38,6 @@
     "enabled": true,
     "minimumReleaseAge": "3 days"
   },
-  "semanticCommits": "enabled",
   "nix": {
     "enabled": true,
     "groupName": "nix dependencies"
