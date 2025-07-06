@@ -3,14 +3,17 @@
   "extends": [
     "config:best-practices",
     ":pinAllExceptPeerDependencies",
-    ":automergeTypes",
     ":semanticCommits",
     ":rebaseStalePrs"
   ],
   "automergeStrategy": "squash",
   "cargo": {
     "enabled": true,
-    "groupName": "cargo dependencies"
+    "groupName": "cargo dependencies",
+    "patch": {
+      "automerge": true
+    },
+    "separateMinorPatch": true
   },
   "github-actions": {
     "enabled": true,
@@ -44,7 +47,17 @@
   },
   "npm": {
     "enabled": true,
-    "groupName": "npm dependencies"
+    "groupName": "npm dependencies",
+    "packageRules": [
+      {
+        "matchPackageNames": ["@types/**"],
+        "automerge": true
+      }
+    ],
+    "patch": {
+      "automerge": true
+    },
+    "separateMinorPatch": true
   },
   "packageRules": [
     {
