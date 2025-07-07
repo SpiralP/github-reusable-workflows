@@ -1,4 +1,5 @@
 {
+  "name": "github-reusable-workflows",
   "dependencies": {
     "@semantic-release/commit-analyzer": "13.0.1",
     "@semantic-release/exec": "7.1.0",
