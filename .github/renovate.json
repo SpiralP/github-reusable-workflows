@@ -68,7 +68,7 @@
   ],
   "recreateWhen": "always",
   "vulnerabilityAlerts": {
-    "enabled": true
+    "minimumReleaseAge": "1 hour"
   },
   "osvVulnerabilityAlerts": true
 }
