@@ -66,5 +66,9 @@
       "groupSlug": "{{manager}}-dependencies-breaking"
     }
   ],
-  "recreateWhen": "always"
+  "recreateWhen": "always",
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+  "osvVulnerabilityAlerts": true
 }
