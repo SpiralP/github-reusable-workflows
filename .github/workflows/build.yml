@@ -30,7 +30,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: cachix/install-nix-action@0b0e072294b088b73964f1d72dfdac0951439dbd # v31.8.4
+      - uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15 # v31.9.0
         if: ${{ inputs.runs-on != 'self-hosted' }}
 
       - run: sudo chown -R $(id -u):$(id -g) /nix
@@ -48,7 +48,7 @@ jobs:
           nix build '.?submodules=1#${{ inputs.flake-attribute }}' \
             --print-build-logs --no-update-lock-file
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: ${{ inputs.upload-build-result }}
         with:
           name: build-result
