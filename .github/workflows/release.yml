@@ -83,7 +83,7 @@ jobs:
       tag: ${{ steps.release.outputs.tag }}
       version: ${{ steps.release.outputs.version }}
     steps:
-      - uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2.2.0
+      - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         id: app-token
         if: ${{ env.OK == 'true-true-true' }}
         env:
@@ -111,7 +111,7 @@ jobs:
           echo "workflow-sha=$workflow_sha" | tee -a "$GITHUB_OUTPUT"
         env:
           GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
-      - uses: nix-community/cache-nix-action@135667ec418502fa5a3598af6fb9eb733888ce6a # v6.1.3
+      - uses: nix-community/cache-nix-action@b426b118b6dc86d6952988d396aa7c6b09776d08 # v7.0.0
         if: ${{ inputs.runs-on != 'self-hosted' }}
         with:
           primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.get-workflow-sha.outputs.workflow-sha }}
