@@ -43,7 +43,8 @@
   },
   "nix": {
     "enabled": true,
-    "groupName": "nix dependencies"
+    "groupName": "nix dependencies",
+    "minimumReleaseAgeBehaviour": "timestamp-optional"
   },
   "npm": {
     "enabled": true,
