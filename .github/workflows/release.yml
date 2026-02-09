@@ -91,7 +91,7 @@ jobs:
         with:
           app-id: ${{ secrets.app-id }}
           private-key: ${{ secrets.app-private-key }}
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -111,7 +111,7 @@ jobs:
           echo "workflow-sha=$workflow_sha" | tee -a "$GITHUB_OUTPUT"
         env:
           GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
-      - uses: nix-community/cache-nix-action@135667ec418502fa5a3598af6fb9eb733888ce6a # v6.1.3
+      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         if: ${{ inputs.runs-on != 'self-hosted' }}
         with:
           primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.get-workflow-sha.outputs.workflow-sha }}
