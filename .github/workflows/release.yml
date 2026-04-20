@@ -83,7 +83,7 @@ jobs:
       tag: ${{ steps.release.outputs.tag }}
       version: ${{ steps.release.outputs.version }}
     steps:
-      - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: app-token
         if: ${{ env.OK == 'true-true-true' }}
         env:
@@ -97,7 +97,7 @@ jobs:
           fetch-tags: true
           submodules: recursive
           token: ${{ secrets.token || steps.app-token.outputs.token || github.token }}
-      - uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe # v31.10.3
+      - uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - run: sudo chown -R $(id -u):$(id -g) /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
