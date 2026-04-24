@@ -56,8 +56,8 @@ on:
         description: The version created by the release.
         value: ${{ jobs.release.outputs.version }}
     secrets:
-      app-id:
-        description: GitHub App ID
+      app-client-id:
+        description: GitHub App Client ID
         required: false
       app-private-key:
         description: GitHub App private key
@@ -78,7 +78,10 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     environment:
       name: ${{ inputs.environment-name }}
-      url: ${{ inputs.environment-name && (inputs.environment-url || format('{0}/{1}/releases/{2}', github.server_url, github.repository, steps.release.outputs.tag && format('tag/{0}', steps.release.outputs.tag) || 'latest')) || '' }}
+      url: ${{ inputs.environment-name && (inputs.environment-url ||
+        format('{0}/{1}/releases/{2}', github.server_url, github.repository,
+        steps.release.outputs.tag && format('tag/{0}',
+        steps.release.outputs.tag) || 'latest')) || '' }}
     outputs:
       tag: ${{ steps.release.outputs.tag }}
       version: ${{ steps.release.outputs.version }}
@@ -87,9 +90,10 @@ jobs:
         id: app-token
         if: ${{ env.OK == 'true-true-true' }}
         env:
-          OK: ${{ secrets.token == '' }}-${{ secrets.app-id != '' }}-${{ secrets.app-private-key != '' }}
+          OK: ${{ secrets.token == '' }}-${{ secrets.app-client-id != '' }}-${{
+            secrets.app-private-key != '' }}
         with:
-          app-id: ${{ secrets.app-id }}
+          client-id: ${{ secrets.app-client-id }}
           private-key: ${{ secrets.app-private-key }}
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -114,7 +118,8 @@ jobs:
       - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         if: ${{ inputs.runs-on != 'self-hosted' }}
         with:
-          primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.get-workflow-sha.outputs.workflow-sha }}
+          primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{
+            steps.get-workflow-sha.outputs.workflow-sha }}
           restore-prefixes-first-match: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
