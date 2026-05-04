@@ -46,6 +46,7 @@
             {
               NODE_PATH = "${nodeModules}/node_modules";
               BASE_CONFIG_PATH = ./semantic-release.json;
+              MERGE_JQ_PATH = ./merge.jq;
             };
           text = builtins.readFile ./semantic-release.sh;
         };
