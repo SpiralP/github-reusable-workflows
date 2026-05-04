@@ -40,6 +40,32 @@ if test -n "${REPLACE_FILES:-}"; then
   rm -f "$temp2"
 fi
 
+if test -n "${ASSETS:-}"; then
+  temp1="$(mktemp)"
+  jq -n \
+    --arg assets "$ASSETS" \
+    '{
+      plugins: [
+        [
+          "@semantic-release/github",
+          {
+            assets: $assets | split("\n") | map(select(length > 0) | ".release-assets/\(.)")
+          }
+        ]
+      ]
+    }' > "$temp1"
+
+  temp2="$(mktemp)"
+  jq -s -f "$MERGE_JQ_PATH" \
+    "$merged_extends" \
+    "$temp1" \
+    > "$temp2"
+  rm -f "$temp1"
+
+  cat "$temp2" > "$merged_extends"
+  rm -f "$temp2"
+fi
+
 if test "${CARGO_PUBLISH:-}" = "true"; then
   temp1="$(mktemp)"
   jq -n \
