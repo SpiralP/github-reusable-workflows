@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 merged_extends="$(mktemp --suffix .json)"
 trap 'rm -f "$merged_extends"' EXIT
 
@@ -30,8 +32,7 @@ if test -n "${REPLACE_FILES:-}"; then
     }' > "$temp1"
 
   temp2="$(mktemp)"
-  jq -s \
-    '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
+  jq -s -f "$SCRIPT_DIR/merge.jq" \
     "$merged_extends" \
     "$temp1" \
     > "$temp2"
@@ -56,8 +57,7 @@ if test "${CARGO_PUBLISH:-}" = "true"; then
     }' > "$temp1"
 
   temp2="$(mktemp)"
-  jq -s \
-    '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
+  jq -s -f "$SCRIPT_DIR/merge.jq" \
     "$merged_extends" \
     "$temp1" \
     > "$temp2"
@@ -69,8 +69,7 @@ fi
 
 if test -n "${EXTENDS:-}"; then
   temp1="$(mktemp)"
-  jq -s \
-    '(.[0] * .[1]) * { plugins: (.[0].plugins + .[1].plugins) }' \
+  jq -s -f "$SCRIPT_DIR/merge.jq" \
     "$merged_extends" \
     "$EXTENDS" \
     > "$temp1"
