@@ -31,6 +31,7 @@
           name = "semantic-release";
           runtimeInputs = with pkgs; [
             coreutils
+            gh
             jq
           ];
           runtimeEnv =
