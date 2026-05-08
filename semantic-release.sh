@@ -91,6 +91,33 @@ if test "${CARGO_PUBLISH:-}" = "true"; then
   rm -f "$temp2"
 fi
 
+if test -n "${BUILD_WORKFLOW:-}"; then
+  publish_cmd="nix run --print-build-logs github:SpiralP/github-reusable-workflows/${WORKFLOW_SHA:-main}#build-and-download -- \"\${nextRelease.gitTag}\" \"$BUILD_WORKFLOW\""
+  fail_cmd="git push --delete origin \"\${nextRelease.gitTag}\" || true; git tag -d \"\${nextRelease.gitTag}\" || true"
+
+  temp1="$(mktemp)"
+  # Insert an exec(publishCmd, failCmd) plugin immediately before
+  # @semantic-release/github. semantic-release pushes the release tag between
+  # the prepare and publish phases, so by the time publishCmd fires, the tag
+  # exists on the remote and `--ref <tag>` resolves to the exact release
+  # commit. Artifacts land in .release-assets/ before @semantic-release/github
+  # globs them. failCmd auto-deletes the tag if any publish-phase plugin
+  # errors, so a retry of the release pipeline starts from a clean state.
+  jq --arg publish "$publish_cmd" --arg fail "$fail_cmd" '
+    ["@semantic-release/exec", {publishCmd: $publish, failCmd: $fail}] as $exec_plugin
+    | .plugins as $orig
+    | ($orig | map(if type == "array" then .[0] else . end) | index("@semantic-release/github")) as $idx
+    | if $idx == null then
+        .plugins = $orig + [$exec_plugin]
+      else
+        .plugins = $orig[:$idx] + [$exec_plugin] + $orig[$idx:]
+      end
+  ' "$merged_extends" > "$temp1"
+  cat "$temp1" > "$merged_extends"
+  rm -f "$temp1"
+fi
+unset BUILD_WORKFLOW
+
 if test -n "${EXTENDS:-}"; then
   temp1="$(mktemp)"
   jq -s -f "$MERGE_JQ_PATH" \

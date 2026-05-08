@@ -27,6 +27,17 @@
           text = builtins.readFile ./replace-versions.sh;
         };
 
+        build-and-download = pkgs.writeShellApplication {
+          name = "build-and-download";
+          runtimeInputs = with pkgs; [
+            coreutils
+            findutils
+            gh
+            git
+          ];
+          text = builtins.readFile ./build-and-download.sh;
+        };
+
         semantic-release = pkgs.writeShellApplication {
           name = "semantic-release";
           runtimeInputs = with pkgs; [
