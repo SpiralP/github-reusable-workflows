@@ -11,13 +11,26 @@
 #   $1  tag name (pass via `${nextRelease.gitTag}` from semantic-release)
 #   $2  workflow filename (e.g. `build.yml`); must support workflow_dispatch.
 #
-# If this script (or any other publish-phase plugin) errors, semantic-release
-# runs the failCmd registered alongside us, which deletes the tag — so a
-# retry of the release pipeline starts from a clean state.
+# If this script exits non-zero, the EXIT trap deletes the just-pushed tag
+# (locally and on the remote) so a retry of the release pipeline starts from
+# a clean state. We can't rely on semantic-release's failCmd hook here:
+# @semantic-release/exec doesn't wrap publishCmd errors in
+# SemanticReleaseError, so semantic-release's callFail() filters them out
+# and never invokes the registered failCmd.
 set -euo pipefail
 
 TAG="${1:?tag name required}"
 WORKFLOW="${2:?workflow filename required}"
+
+cleanup() {
+  status=$?
+  if test "$status" -ne 0; then
+    echo "Build dispatch/watch/download failed (status=$status); deleting tag $TAG" >&2
+    git push --delete origin "$TAG" || echo "warning: could not delete remote tag $TAG" >&2
+    git tag -d "$TAG" || echo "warning: could not delete local tag $TAG" >&2
+  fi
+}
+trap cleanup EXIT
 
 echo "Dispatching $WORKFLOW on tag=$TAG"
 # gh 2.50+ prints the run's HTML URL on stdout in non-TTY mode (single line),
