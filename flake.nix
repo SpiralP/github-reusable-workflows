@@ -1,13 +1,19 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+
+    # `build-and-download.sh` relies on gh >= 2.87.0, which prints the
+    # dispatched run's URL on stdout in non-TTY mode (cli/cli#12695,
+    # released 2026-02-18). nixos-25.11 ships gh 2.83.2, so pull just
+    # gh from unstable via an overlay below.
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
-  outputs = { nixpkgs, ... }:
+  outputs = { nixpkgs, nixpkgs-unstable, ... }:
     let
       inherit (nixpkgs) lib;
 
-      makePackages = (pkgs: {
+      makePackages = (pkgs: pkgsUnstable: {
         release-success = pkgs.writeShellApplication {
           name = "release-success";
           runtimeInputs = with pkgs; [
@@ -32,7 +38,7 @@
           runtimeInputs = with pkgs; [
             coreutils
             findutils
-            gh
+            pkgsUnstable.gh
             git
           ];
           text = builtins.readFile ./build-and-download.sh;
@@ -42,7 +48,7 @@
           name = "semantic-release";
           runtimeInputs = with pkgs; [
             coreutils
-            gh
+            pkgsUnstable.gh
             jq
           ];
           runtimeEnv =
@@ -82,7 +88,8 @@
           pkgs = import nixpkgs {
             inherit system;
           };
-          packages = makePackages pkgs;
+          pkgsUnstable = nixpkgs-unstable.legacyPackages.${system};
+          packages = makePackages pkgs pkgsUnstable;
           packagesWithDefault = packages // {
             default = pkgs.linkFarmFromDrvs "default" (builtins.attrValues packages);
           };
