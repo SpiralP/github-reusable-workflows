@@ -65,6 +65,11 @@
       "matchJsonata": ["isBreaking = true"],
       "groupName": "{{manager}} dependencies (breaking)",
       "groupSlug": "{{manager}}-dependencies-breaking"
+    },
+    {
+      "matchDepNames": ["taiki-e/install-action"],
+      "schedule": ["before 6am on monday"],
+      "automerge": true
     }
   ],
   "recreateWhen": "always",

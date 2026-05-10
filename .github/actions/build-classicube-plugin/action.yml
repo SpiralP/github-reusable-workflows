@@ -1,0 +1,110 @@
+name: build-classicube-plugin
+description: |
+  Build, test, and upload a ClassiCube plugin cdylib for one platform/arch.
+  Caller is responsible for actions/checkout and any pre-build steps
+  (dep install, cache, msbuild setup, etc.) before invoking this action.
+
+inputs:
+  arch:
+    description: x86_64 | i686 | aarch64 (used in the asset filename).
+    required: true
+  target:
+    description: Full Cargo target triple, e.g. x86_64-unknown-linux-gnu.
+    required: true
+  release-mode:
+    description: When "true", builds the release profile; when "false", builds debug.
+    default: "true"
+  test-command:
+    description: |
+      Test command up to (but not including) `--target` and the release flag.
+      Default targets cargo-nextest. For `cargo test`, pass `cargo test`.
+    default: cargo nextest run
+  test-args:
+    description: |
+      Trailing test args, appended after `--target` and the release flag
+      (e.g. `--no-capture` for nextest, or `-- --nocapture --test-threads 1`
+      for `cargo test`).
+    default: --no-capture
+  asset-prefix:
+    description: |
+      Override the asset basename. Default auto-derives from `$GITHUB_REPOSITORY`:
+      repo name minus a trailing `-plugin`, with hyphens swapped for underscores
+      (e.g. `classicube-foo-plugin` -> `classicube_foo`).
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Derive build env
+      shell: bash
+      env:
+        IN_ASSET_PREFIX: ${{ inputs.asset-prefix }}
+        IN_ARCH: ${{ inputs.arch }}
+        IN_TARGET: ${{ inputs.target }}
+        PROFILE: ${{ inputs.release-mode == 'true' && 'release' || 'debug' }}
+      run: |
+        if [[ -n "$IN_ASSET_PREFIX" ]]; then
+          ap="$IN_ASSET_PREFIX"
+        else
+          repo="${GITHUB_REPOSITORY##*/}"
+          short="${repo%-plugin}"
+          ap="${short//-/_}"
+        fi
+        case "$RUNNER_OS" in
+          Linux)   ext=so;     lib_prefix=lib; os_token=linux ;;
+          macOS)   ext=dylib;  lib_prefix=lib; os_token=macos ;;
+          Windows) ext=dll;    lib_prefix=;    os_token=windows ;;
+          *) echo "::error::unsupported RUNNER_OS=$RUNNER_OS"; exit 1 ;;
+        esac
+        asset_name="${ap}_${os_token}_${IN_ARCH}"
+        {
+          echo "ASSET_PREFIX=$ap"
+          echo "BUILT_PATH=target/${IN_TARGET}/${PROFILE}/${lib_prefix}${ap}_plugin.${ext}"
+          echo "ASSET_NAME=$asset_name"
+          echo "ASSET_FILE=${asset_name}.${ext}"
+        } >> "$GITHUB_ENV"
+
+    - name: Linux i686 cross-compile prerequisites
+      if: ${{ runner.os == 'Linux' && inputs.arch == 'i686' }}
+      shell: bash
+      run: |
+        sudo dpkg --add-architecture i386
+        echo "PKG_CONFIG_ALLOW_CROSS=1" >> "$GITHUB_ENV"
+
+    - name: Add rust target
+      shell: bash
+      run: rustup target add "${{ inputs.target }}"
+
+    - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      with:
+        key: ${{ inputs.target }}
+
+    - name: Build
+      shell: bash
+      run: |
+        cargo build --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }}
+        ls -lh "$BUILT_PATH"
+        if command -v file >/dev/null; then
+          file "$BUILT_PATH"
+        fi
+        if command -v sha256sum >/dev/null; then
+          sha256sum "$BUILT_PATH"
+        elif command -v shasum >/dev/null; then
+          shasum -a 256 "$BUILT_PATH"
+        fi
+
+    - uses: taiki-e/install-action@db5fb34fa772531a3ece57ca434f579eb334e0fb # v2.75.30
+      if: ${{ contains(inputs.test-command, 'nextest') }}
+      with:
+        tool: cargo-nextest
+
+    - name: Test and rename
+      shell: bash
+      run: |
+        ${{ inputs.test-command }} --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }} ${{ inputs.test-args }}
+        mv "$BUILT_PATH" "./$ASSET_FILE"
+
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ env.ASSET_NAME }}
+        path: ${{ env.ASSET_FILE }}
