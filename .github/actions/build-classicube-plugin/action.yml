@@ -1,8 +1,15 @@
 name: build-classicube-plugin
 description: |
-  Build, test, and upload a ClassiCube plugin cdylib for one platform/arch.
-  Caller is responsible for actions/checkout and any pre-build steps
-  (dep install, cache, msbuild setup, etc.) before invoking this action.
+  Build, test, and upload a ClassiCube plugin cdylib for one platform/arch,
+  with a SLSA build-provenance attestation. Caller is responsible for
+  actions/checkout and any pre-build steps (dep install, cache, msbuild
+  setup, etc.) before invoking this action.
+
+  Required caller permissions (workflow- or job-level):
+    contents: read       # for checkout
+    id-token: write      # for the Sigstore OIDC exchange
+    attestations: write  # to publish the signed bundle to GitHub
+  See https://github.com/actions/attest for details.
 
 inputs:
   arch:
@@ -110,3 +117,8 @@ runs:
       with:
         name: ${{ env.ASSET_NAME }}
         path: ${{ env.ASSET_FILE }}
+
+    - name: Generate build provenance attestation
+      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+      with:
+        subject-path: ${{ env.ASSET_FILE }}
