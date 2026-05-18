@@ -32,12 +32,6 @@ inputs:
       (e.g. `--no-capture` for nextest, or `-- --nocapture --test-threads 1`
       for `cargo test`).
     default: --no-capture
-  asset-prefix:
-    description: |
-      Override the asset basename. Default auto-derives from `$GITHUB_REPOSITORY`:
-      repo name minus a trailing `-plugin`, with hyphens swapped for underscores
-      (e.g. `classicube-foo-plugin` -> `classicube_foo`).
-    default: ""
   use-cross:
     description: |
       When "true", use `cross` (cross-rs/cross) for build and test instead of
@@ -59,25 +53,16 @@ runs:
     - name: Derive build env
       shell: bash
       env:
-        IN_ASSET_PREFIX: ${{ inputs.asset-prefix }}
         IN_ARCH: ${{ inputs.arch }}
         IN_TARGET: ${{ inputs.target }}
         PROFILE: ${{ inputs.release-mode == 'true' && 'release' || 'debug' }}
       run: |
-        if [[ -n "$IN_ASSET_PREFIX" ]]; then
-          ap="$IN_ASSET_PREFIX"
-        else
-          repo="${GITHUB_REPOSITORY##*/}"
-          short="${repo%-plugin}"
-          ap="${short//-/_}"
-        fi
         case "$RUNNER_OS" in
-          Linux)   ext=so;     lib_prefix=lib; os_token=linux ;;
-          macOS)   ext=dylib;  lib_prefix=lib; os_token=macos ;;
-          Windows) ext=dll;    lib_prefix=;    os_token=windows ;;
+          Linux)   lib_ext=.so;    bin_ext=;     lib_prefix=lib; os_token=linux ;;
+          macOS)   lib_ext=.dylib; bin_ext=;     lib_prefix=lib; os_token=macos ;;
+          Windows) lib_ext=.dll;   bin_ext=.exe; lib_prefix=;    os_token=windows ;;
           *) echo "::error::unsupported RUNNER_OS=$RUNNER_OS"; exit 1 ;;
         esac
-        asset_name="${ap}_${os_token}_${IN_ARCH}"
         cargo_cmd="${{ inputs.use-cross == 'true' && 'cross' || 'cargo' }}"
         test_cmd='${{ inputs.test-command }}'
         test_args='${{ inputs.test-args }}'
@@ -95,11 +80,25 @@ runs:
             test_cmd="${test_cmd/#cargo/cross}"
           fi
         fi
+        # Discover cdylib + [[bin]] target paths once. Space-separated since
+        # cargo target names are valid Rust identifiers (no spaces / glob
+        # chars), so consumers can iterate with `for p in $CDYLIB_PATHS`.
+        build_dir="target/${IN_TARGET}/${PROFILE}"
+        metadata="$(cargo metadata --no-deps --format-version 1)"
+        cdylib_paths="$(echo "$metadata" \
+          | jq -r --arg dir "$build_dir" --arg prefix "$lib_prefix" --arg ext "$lib_ext" \
+            '[.packages[].targets[] | select(.kind[] == "cdylib") | "\($dir)/\($prefix)\(.name)\($ext)"] | join(" ")')"
+        bin_paths="$(echo "$metadata" \
+          | jq -r --arg dir "$build_dir" --arg ext "$bin_ext" \
+            '[.packages[].targets[] | select(.kind[] == "bin") | "\($dir)/\(.name)\($ext)"] | join(" ")')"
         {
-          echo "ASSET_PREFIX=$ap"
-          echo "BUILT_PATH=target/${IN_TARGET}/${PROFILE}/${lib_prefix}${ap}_plugin.${ext}"
-          echo "ASSET_NAME=$asset_name"
-          echo "ASSET_FILE=${asset_name}.${ext}"
+          echo "ARTIFACT_DIR=${RUNNER_TEMP}/build-classicube-plugin-artifact"
+          echo "LIB_EXT=$lib_ext"
+          echo "LIB_PREFIX=$lib_prefix"
+          echo "BIN_EXT=$bin_ext"
+          echo "CDYLIB_PATHS=$cdylib_paths"
+          echo "BIN_PATHS=$bin_paths"
+          echo "OS_TOKEN=$os_token"
           echo "CARGO_CMD=$cargo_cmd"
           echo "TEST_CMD=$test_cmd"
           echo "TEST_ARGS=$test_args"
@@ -132,34 +131,61 @@ runs:
       shell: bash
       run: |
         $CARGO_CMD build --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }}
-        ls -lh "$BUILT_PATH"
-        if command -v file >/dev/null; then
-          file "$BUILT_PATH"
-        fi
-        if command -v sha256sum >/dev/null; then
-          sha256sum "$BUILT_PATH"
-        elif command -v shasum >/dev/null; then
-          shasum -a 256 "$BUILT_PATH"
-        fi
+        for p in $CDYLIB_PATHS $BIN_PATHS; do
+          ls -lh "$p"
+          if command -v file >/dev/null; then
+            file "$p"
+          fi
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$p"
+          elif command -v shasum >/dev/null; then
+            shasum -a 256 "$p"
+          fi
+        done
 
     - uses: taiki-e/install-action@fa0dd4cd0a40696e6f9766370614a5ce482e6aa8 # v2.77.5
       if: ${{ contains(inputs.test-command, 'nextest') && inputs.use-cross != 'true' }}
       with:
         tool: cargo-nextest
 
-    - name: Test and rename
+    - name: Test and stage artifacts
       shell: bash
       run: |
         $TEST_CMD --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }} $TEST_ARGS
-        mv "$BUILT_PATH" "./$ASSET_FILE"
+        # Stage cdylib + [[bin]] targets discovered via `cargo metadata`
+        # under $RUNNER_TEMP. upload-artifact / attest then glob
+        # `$ARTIFACT_DIR/*`; the glob's lowest-common-ancestor is the dir
+        # itself, so contents land flat (no leading path). Each file is
+        # renamed to <name>_<os>_<arch>[.ext], where <name> is the cargo
+        # target name. cdylibs additionally have their `lib` prefix
+        # stripped (cargo adds it on Linux/macOS) and a trailing `_plugin`
+        # stripped to match the ClassiCube plugin file-naming convention.
+        rm -rf "$ARTIFACT_DIR" && mkdir -p "$ARTIFACT_DIR"
+        for src in $CDYLIB_PATHS; do
+          name="$(basename "$src" "$LIB_EXT")"
+          name="${name#$LIB_PREFIX}"
+          name="${name%_plugin}"
+          mv -v "$src" "$ARTIFACT_DIR/${name}_${OS_TOKEN}_${{ inputs.arch }}${LIB_EXT}"
+        done
+        for src in $BIN_PATHS; do
+          name="$(basename "$src" "$BIN_EXT")"
+          mv -v "$src" "$ARTIFACT_DIR/${name}_${OS_TOKEN}_${{ inputs.arch }}${BIN_EXT}"
+        done
+        ls -lh "$ARTIFACT_DIR"
+        # Auto-derive the upload-artifact group name from $GITHUB_REPOSITORY:
+        # repo name minus a trailing `-plugin`, hyphens swapped for
+        # underscores (e.g. `classicube-foo-plugin` -> `classicube_foo`).
+        repo="${GITHUB_REPOSITORY##*/}"
+        short="${repo%-plugin}"
+        echo "ASSET_NAME=${short//-/_}_${OS_TOKEN}_${{ inputs.arch }}" >> "$GITHUB_ENV"
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ env.ASSET_NAME }}
-        path: ${{ env.ASSET_FILE }}
+        path: ${{ env.ARTIFACT_DIR }}/*
 
     - name: Generate build provenance attestation
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
       with:
         show-summary: false
-        subject-path: ${{ env.ASSET_FILE }}
+        subject-path: ${{ env.ARTIFACT_DIR }}/*
