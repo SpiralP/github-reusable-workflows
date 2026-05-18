@@ -146,9 +146,9 @@ jobs:
         if: ${{ inputs.runs-on != 'self-hosted' }}
         with:
           primary-key:
-            nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{
+            nix-release-semantic-release-${{ runner.os }}-${{ runner.arch }}-${{
             steps.get-workflow-sha.outputs.workflow-sha }}
-          restore-prefixes-first-match: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
+          restore-prefixes-first-match: nix-release-semantic-release-${{ runner.os }}-${{ runner.arch }}-
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}

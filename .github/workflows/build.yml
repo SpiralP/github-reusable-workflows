@@ -38,8 +38,8 @@ jobs:
       - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         if: ${{ inputs.runs-on != 'self-hosted' }}
         with:
-          primary-key: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-          restore-prefixes-first-match: nix-${{ github.workflow }}-${{ runner.os }}-${{ runner.arch }}-
+          primary-key: nix-build-${{ inputs.flake-attribute }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-build-${{ inputs.flake-attribute }}-${{ runner.os }}-${{ runner.arch }}-
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
