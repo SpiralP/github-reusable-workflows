@@ -38,6 +38,20 @@ inputs:
       repo name minus a trailing `-plugin`, with hyphens swapped for underscores
       (e.g. `classicube-foo-plugin` -> `classicube_foo`).
     default: ""
+  use-cross:
+    description: |
+      When "true", use `cross` (cross-rs/cross) for build and test instead of
+      `cargo`. Cross runs the toolchain inside a Docker container, so the
+      Linux i686 multilib setup and `rustup target add` steps are skipped.
+      If `test-command` starts with `cargo`, it is rewritten to start with
+      `cross`. As a special case, the default `cargo nextest run` is rewritten
+      to `cross test` (rather than `cross nextest run`) because the default
+      cross images don't ship cargo-nextest; the default `test-args` of
+      `--no-capture` is likewise rewritten to `-- --nocapture` so the
+      fallback runs cleanly. Pass an explicit `test-command` and
+      `test-args` to opt out of this remap. Effectively Linux-only on
+      GitHub-hosted runners.
+    default: "false"
 
 runs:
   using: composite
@@ -64,23 +78,49 @@ runs:
           *) echo "::error::unsupported RUNNER_OS=$RUNNER_OS"; exit 1 ;;
         esac
         asset_name="${ap}_${os_token}_${IN_ARCH}"
+        cargo_cmd="${{ inputs.use-cross == 'true' && 'cross' || 'cargo' }}"
+        test_cmd='${{ inputs.test-command }}'
+        test_args='${{ inputs.test-args }}'
+        if [[ "$cargo_cmd" == "cross" ]]; then
+          # Default cross images don't ship cargo-nextest, so fall back to
+          # plain `cross test` when the caller hasn't overridden test-command.
+          # Also retranslate the default nextest --no-capture flag to the
+          # libtest equivalent so the fallback runs cleanly.
+          if [[ "$test_cmd" == "cargo nextest run" ]]; then
+            test_cmd="cross test"
+            if [[ "$test_args" == "--no-capture" ]]; then
+              test_args="-- --nocapture"
+            fi
+          else
+            test_cmd="${test_cmd/#cargo/cross}"
+          fi
+        fi
         {
           echo "ASSET_PREFIX=$ap"
           echo "BUILT_PATH=target/${IN_TARGET}/${PROFILE}/${lib_prefix}${ap}_plugin.${ext}"
           echo "ASSET_NAME=$asset_name"
           echo "ASSET_FILE=${asset_name}.${ext}"
+          echo "CARGO_CMD=$cargo_cmd"
+          echo "TEST_CMD=$test_cmd"
+          echo "TEST_ARGS=$test_args"
         } >> "$GITHUB_ENV"
 
     - name: Linux i686 cross-compile prerequisites
-      if: ${{ runner.os == 'Linux' && inputs.arch == 'i686' }}
+      if: ${{ runner.os == 'Linux' && inputs.arch == 'i686' && inputs.use-cross != 'true' }}
       shell: bash
       run: |
         sudo dpkg --add-architecture i386
         echo "PKG_CONFIG_ALLOW_CROSS=1" >> "$GITHUB_ENV"
 
     - name: Add rust target
+      if: ${{ inputs.use-cross != 'true' }}
       shell: bash
       run: rustup target add "${{ inputs.target }}"
+
+    - uses: taiki-e/install-action@fa0dd4cd0a40696e6f9766370614a5ce482e6aa8 # v2.77.5
+      if: ${{ inputs.use-cross == 'true' }}
+      with:
+        tool: cross
 
     - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       with:
@@ -91,7 +131,7 @@ runs:
     - name: Build
       shell: bash
       run: |
-        cargo build --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }}
+        $CARGO_CMD build --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }}
         ls -lh "$BUILT_PATH"
         if command -v file >/dev/null; then
           file "$BUILT_PATH"
@@ -103,14 +143,14 @@ runs:
         fi
 
     - uses: taiki-e/install-action@fa0dd4cd0a40696e6f9766370614a5ce482e6aa8 # v2.77.5
-      if: ${{ contains(inputs.test-command, 'nextest') }}
+      if: ${{ contains(inputs.test-command, 'nextest') && inputs.use-cross != 'true' }}
       with:
         tool: cargo-nextest
 
     - name: Test and rename
       shell: bash
       run: |
-        ${{ inputs.test-command }} --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }} ${{ inputs.test-args }}
+        $TEST_CMD --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }} $TEST_ARGS
         mv "$BUILT_PATH" "./$ASSET_FILE"
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
