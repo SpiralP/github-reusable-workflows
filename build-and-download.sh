@@ -48,7 +48,7 @@ esac
 echo "Dispatched run: $RUN_URL (id=$RUN_ID)"
 
 echo "Watching run $RUN_ID"
-gh run watch "$RUN_ID" --exit-status
+gh run watch "$RUN_ID" --compact --exit-status --interval 5
 
 mkdir -p .release-assets
 echo "Downloading artifacts from run $RUN_ID into .release-assets/"
