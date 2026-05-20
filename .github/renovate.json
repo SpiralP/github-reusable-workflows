@@ -7,7 +7,10 @@
     ":rebaseStalePrs"
   ],
   "automergeStrategy": "squash",
+  "minimumReleaseAge": "7 days",
+  "timezone": "America/Los_Angeles",
   "cargo": {
+    "description": "Group all cargo updates into one PR; automerge patch-level only (review required for minor/major)",
     "enabled": true,
     "groupName": "cargo dependencies",
     "patch": {
@@ -15,61 +18,79 @@
     },
     "separateMinorPatch": true
   },
-  "github-actions": {
+  "nix": {
+    "description": "timestamp-optional lets nix updates proceed when flake inputs lack timestamp metadata, instead of blocking indefinitely",
     "enabled": true,
-    "packageRules": [
-      {
-        "matchDepNames": ["SpiralP/github-reusable-workflows"],
-        "automerge": true
-      }
-    ]
+    "groupName": "nix dependencies",
+    "minimumReleaseAgeBehaviour": "timestamp-optional"
+  },
+  "npm": {
+    "description": "Group all npm updates into one PR; automerge @types/* and patch-level (review required for minor/major)",
+    "enabled": true,
+    "groupName": "npm dependencies",
+    "patch": {
+      "automerge": true
+    },
+    "separateMinorPatch": true
   },
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
     "groupName": "lock file maintenance"
   },
-  "major": {
-    "enabled": true,
-    "minimumReleaseAge": "7 days"
-  },
-  "minor": {
-    "enabled": true,
-    "minimumReleaseAge": "7 days"
-  },
-  "patch": {
-    "enabled": true,
-    "minimumReleaseAge": "7 days"
-  },
-  "nix": {
-    "enabled": true,
-    "groupName": "nix dependencies",
-    "minimumReleaseAgeBehaviour": "timestamp-optional"
-  },
-  "npm": {
-    "enabled": true,
-    "groupName": "npm dependencies",
-    "packageRules": [
-      {
-        "matchPackageNames": ["@types/**"],
-        "automerge": true
-      }
-    ],
-    "patch": {
-      "automerge": true
-    },
-    "separateMinorPatch": true
+  "pinDigest": {
+    "description": "Pinning an existing tag to its current digest introduces no new code; skip the 7-day wait",
+    "minimumReleaseAge": "0 days"
   },
   "packageRules": [
     {
+      "description": "Group all breaking changes per manager into a dedicated PR so they're not mixed with safe updates",
       "matchJsonata": ["isBreaking = true"],
       "groupName": "{{manager}} dependencies (breaking)",
       "groupSlug": "{{manager}}-dependencies-breaking"
     },
     {
-      "matchDepNames": ["taiki-e/install-action"],
-      "schedule": ["before 6am on monday"],
+      "description": "Refresh rust Docker image digest weekly. 0-day wait works around renovatebot/renovate#38659: Renovate uses the tag push timestamp (not the digest creation time) for releaseTimestamp on Docker digests, so a months-old digest can look 'too new' and get blocked by the global 7-day age",
+      "matchManagers": ["dockerfile"],
+      "matchDepNames": ["rust"],
+      "matchUpdateTypes": ["digest"],
+      "minimumReleaseAge": "0 days",
+      "schedule": ["before 6am on saturday"],
       "automerge": true
+    },
+    {
+      "description": "First-party reusable workflows are consumed as `uses: SpiralP/github-reusable-workflows/.github/workflows/build.yml@<sha> # main`, so the only update Renovate produces is a digest bump when main moves. Roll those out to downstream repos immediately with no release-age wait",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["SpiralP/github-reusable-workflows"],
+      "matchUpdateTypes": ["digest"],
+      "minimumReleaseAge": "0 days",
+      "automerge": true
+    },
+    {
+      "description": "taiki-e/install-action is consumed as either `@<sha> # main` (digest bumps when main moves) or `@<sha> # v2.x.y` (minor/patch tag bumps). Batch all three update types to Saturday and automerge. Major updates intentionally fall through so they surface as a normal review PR",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["taiki-e/install-action"],
+      "matchUpdateTypes": ["digest", "minor", "patch"],
+      "schedule": ["before 6am on saturday"],
+      "automerge": true
+    },
+    {
+      "description": "@types/* packages are type-only definitions with no runtime impact",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@types/**"],
+      "automerge": true
+    },
+    {
+      "description": "Override config:best-practices' security:minimumReleaseAgeNpm preset (which sets npm to 3 days) by re-applying the global 7-day wait to standard updates, in-range bumps, and lockFileMaintenance. `pin` and `replacement` aren't listed here, so they inherit the global 7-day wait (the preset's exemptions for those types don't carry over); `pinDigest` is exempted by the top-level `pinDigest` block, and `rollback` by the rule below",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest", "bump", "lockFileMaintenance"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "npm rollbacks revert to a known-safe version (typically after an unpublish); skip the release-age wait since the point is recovery",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["rollback"],
+      "minimumReleaseAge": "0 days"
     }
   ],
   "recreateWhen": "always",
