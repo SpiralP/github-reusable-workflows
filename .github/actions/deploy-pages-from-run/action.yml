@@ -13,7 +13,7 @@ description: |
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.<id-of-this-step>.outputs.page-url }}
+      url: $${{ steps.<id-of-this-step>.outputs.page-url }}
     concurrency:
       group: pages
       cancel-in-progress: false
