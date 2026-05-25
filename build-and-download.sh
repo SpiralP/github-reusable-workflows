@@ -4,8 +4,9 @@
 # tag and BEFORE @semantic-release/github creates the release. Dispatches a
 # build workflow on the tag (which is immutable, so `--ref <tag>` checks out
 # the exact released commit), waits for it, and downloads its artifacts into
-# `.release-assets/` so that @semantic-release/github attaches them to the
-# release.
+# `$RUNNER_TEMP/release-assets/` so that @semantic-release/github attaches them
+# to the release. Staging outside the repo working tree keeps `cargo publish`
+# and `@semantic-release/git` from tripping their dirty-tree checks.
 #
 # Args:
 #   $1  tag name (pass via `${nextRelease.gitTag}` from semantic-release)
@@ -60,14 +61,15 @@ fi
 echo "Watching run $RUN_ID"
 gh run watch "$RUN_ID" --compact --exit-status --interval 5
 
-mkdir -p .release-assets
-echo "Downloading artifacts from run $RUN_ID into .release-assets/"
-gh run download "$RUN_ID" --dir .release-assets
+ASSETS_DIR="${RUNNER_TEMP:?RUNNER_TEMP must be set}/release-assets"
+mkdir -p "$ASSETS_DIR"
+echo "Downloading artifacts from run $RUN_ID into $ASSETS_DIR/"
+gh run download "$RUN_ID" --dir "$ASSETS_DIR"
 
 # `gh run download` places each artifact in its own subdirectory; flatten so
-# `.release-assets/*.{so,dll,dylib}` matches the upstream release.yml's glob.
-find .release-assets -mindepth 2 -type f -exec mv -t .release-assets/ {} +
-find .release-assets -mindepth 1 -type d -empty -delete
+# the asset globs in semantic-release.sh match against bare filenames.
+find "$ASSETS_DIR" -mindepth 2 -type f -exec mv -t "$ASSETS_DIR/" {} +
+find "$ASSETS_DIR" -mindepth 1 -type d -empty -delete
 
 echo "Final assets:"
-ls -la .release-assets
+ls -la "$ASSETS_DIR"

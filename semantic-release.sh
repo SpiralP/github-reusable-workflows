@@ -44,12 +44,13 @@ if test -n "${ASSETS:-}"; then
   temp1="$(mktemp)"
   jq -n \
     --arg assets "$ASSETS" \
+    --arg prefix "${RUNNER_TEMP:?RUNNER_TEMP must be set}/release-assets/" \
     '{
       plugins: [
         [
           "@semantic-release/github",
           {
-            assets: $assets | split("\n") | map(select(length > 0) | ".release-assets/\(.)")
+            assets: $assets | split("\n") | map(select(length > 0) | "\($prefix)\(.)")
           }
         ]
       ]
