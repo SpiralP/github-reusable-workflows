@@ -1,0 +1,58 @@
+name: deploy-pages-from-run
+description: |
+  Deploy a `github-pages` artifact uploaded by a *different* workflow run to
+  GitHub Pages. Pairs with `release.yml`'s `dispatched-run-id` output so
+  semantic-release pipelines can deploy docs built against the released tag
+  without rebuilding in the release runner.
+
+  The calling job MUST declare:
+    permissions:
+      contents: read
+      actions: read     # cross-run artifact download
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.<id-of-this-step>.outputs.page-url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
+inputs:
+  run-id:
+    description: Run ID of the source workflow run that uploaded the artifact.
+    required: true
+  artifact-name:
+    description: Name of the source artifact. Defaults to `github-pages` (the name `actions/upload-pages-artifact` writes).
+    required: false
+    default: github-pages
+
+outputs:
+  page-url:
+    description: Deployed Pages URL.
+    value: ${{ steps.deployment.outputs.page_url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download artifact from source run
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ runner.temp }}/pages-dl
+        run-id: ${{ inputs.run-id }}
+        github-token: ${{ github.token }}
+
+    - name: Re-upload as github-pages in current run
+      # `actions/deploy-pages` only reads a `github-pages` artifact from the
+      # *current* run. The downloaded `artifact.tar` is already in the exact
+      # shape `actions/upload-pages-artifact` produces (a zip containing a
+      # single `artifact.tar`), so we re-upload that file directly — no need
+      # to untar and retar through `upload-pages-artifact`.
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: github-pages
+        path: ${{ runner.temp }}/pages-dl/artifact.tar
+
+    - id: deployment
+      uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

@@ -47,6 +47,16 @@ case "$RUN_ID" in
 esac
 echo "Dispatched run: $RUN_URL (id=$RUN_ID)"
 
+# Surface the run-id to the caller via the workflow's `dispatched-run-id`
+# output. The path is set by the Release step in the reusable release
+# workflow (analogous to VERSION_OUTPUT_FILE / TAG_OUTPUT_FILE). Written
+# eagerly so the output is set even if watch/download later fails — though
+# in the failure path the EXIT trap deletes the tag, so the caller's
+# `deploy-docs` job gates on `needs.release.outputs.tag` and skips anyway.
+if test -n "${DISPATCHED_RUN_ID_FILE:-}"; then
+  printf '%s' "$RUN_ID" > "$DISPATCHED_RUN_ID_FILE"
+fi
+
 echo "Watching run $RUN_ID"
 gh run watch "$RUN_ID" --compact --exit-status --interval 5
 

@@ -82,6 +82,14 @@ on:
       version:
         description: The version created by the release.
         value: ${{ jobs.release.outputs.version }}
+      dispatched-run-id:
+        description: |
+          Run ID of the build workflow dispatched on the release tag,
+          when `build-workflow:` was set. Empty otherwise. Use with
+          `actions/download-artifact`'s `run-id:` to pull a cross-run
+          artifact from that dispatched build, or with the
+          `deploy-pages-from-run` action shipped in this repo.
+        value: ${{ jobs.release.outputs.dispatched-run-id }}
     secrets:
       app-client-id:
         description: GitHub App Client ID
@@ -112,6 +120,7 @@ jobs:
     outputs:
       tag: ${{ steps.release.outputs.tag }}
       version: ${{ steps.release.outputs.version }}
+      dispatched-run-id: ${{ steps.release.outputs.dispatched-run-id }}
     steps:
       - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: app-token
@@ -172,11 +181,14 @@ jobs:
           export VERSION_OUTPUT_FILE
           TAG_OUTPUT_FILE="$(mktemp)"
           export TAG_OUTPUT_FILE
+          DISPATCHED_RUN_ID_FILE="$(mktemp)"
+          export DISPATCHED_RUN_ID_FILE
 
           "$TMPDIR/semantic-release/bin/semantic-release" ${{ inputs.args }}
 
           echo "version=$(cat "$VERSION_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
           echo "tag=$(cat "$TAG_OUTPUT_FILE")" | tee -a "$GITHUB_OUTPUT"
+          echo "dispatched-run-id=$(cat "$DISPATCHED_RUN_ID_FILE")" | tee -a "$GITHUB_OUTPUT"
         env:
           ASSETS: ${{ inputs.assets }}
           BUILD_WORKFLOW: ${{ inputs.build-workflow }}
