@@ -1,22 +1,12 @@
 name: deploy-pages-from-run
-description: |
-  Deploy a `github-pages` artifact uploaded by a *different* workflow run to
+description: >
+  Deploy a `github-pages` artifact uploaded by a different workflow run to
   GitHub Pages. Pairs with `release.yml`'s `dispatched-run-id` output so
   semantic-release pipelines can deploy docs built against the released tag
-  without rebuilding in the release runner.
-
-  The calling job MUST declare:
-    permissions:
-      contents: read
-      actions: read     # cross-run artifact download
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: $${{ steps.<id-of-this-step>.outputs.page-url }}
-    concurrency:
-      group: pages
-      cancel-in-progress: false
+  without rebuilding in the release runner. The calling job must declare
+  permissions (contents:read, actions:read, pages:write, id-token:write),
+  the github-pages environment with url wired to this step's page-url
+  output, and a `pages` concurrency group with cancel-in-progress disabled.
 
 inputs:
   run-id:
