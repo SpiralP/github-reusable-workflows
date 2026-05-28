@@ -144,9 +144,10 @@ jobs:
       - name: Get workflow SHA
         id: get-workflow-sha
         run: |
+          set -euo pipefail
           workflow_path="$(printf '%s' "$GITHUB_WORKFLOW_REF" | sed 's/[^/]*\/[^/]*\/\([^@]*\).*/\1/')"
           echo "workflow_path=$workflow_path"
-          workflow_sha="$(cat "$workflow_path" | grep -F ' uses: SpiralP/github-reusable-workflows/.github/workflows/release.yml' | sed 's/.*@\(\S*\).*/\1/')"
+          workflow_sha="$(cat "$workflow_path" | grep -F ' uses: SpiralP/github-reusable-workflows/.github/workflows/release.yml' | sed 's/.*@\(\S*\).*/\1/' || true)"
           test -z "$workflow_sha" && workflow_sha="main"
           echo "workflow-sha=$workflow_sha" | tee -a "$GITHUB_OUTPUT"
         env:
@@ -162,6 +163,7 @@ jobs:
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
       - run: |
+          set -euo pipefail
           nix build "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
             --print-build-logs --print-out-paths --out-link "$TMPDIR/semantic-release"
         env:
@@ -172,9 +174,21 @@ jobs:
         with:
           path: ${{ runner.temp }}/release-assets
           merge-multiple: true
+      - name: Verify release assets downloaded
+        if: ${{ inputs.assets != '' && inputs.build-workflow == '' }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/release-assets"
+          if [[ ! -d "$dir" ]] || [[ -z "$(ls -A "$dir")" ]]; then
+            echo "::error::download-artifact produced no files in $dir (inputs.assets is set but no artifacts were uploaded by the build job)"
+            exit 1
+          fi
+          echo "Downloaded assets:"
+          ls -lh "$dir"
       - name: Release
         id: release
         run: |
+          set -euo pipefail
           REPO_NAME="$(echo "$REPO" | cut -d '/' -f 2)"
           export PACKAGE_NAME="${PACKAGE_NAME:-$REPO_NAME}"
           VERSION_OUTPUT_FILE="$(mktemp)"

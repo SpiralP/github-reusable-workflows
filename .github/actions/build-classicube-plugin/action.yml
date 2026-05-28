@@ -57,6 +57,7 @@ runs:
         IN_TARGET: ${{ inputs.target }}
         PROFILE: ${{ inputs.release-mode == 'true' && 'release' || 'debug' }}
       run: |
+        set -euo pipefail
         case "$RUNNER_OS" in
           Linux)   lib_ext=.so;    bin_ext=;     lib_prefix=lib; os_token=linux ;;
           macOS)   lib_ext=.dylib; bin_ext=;     lib_prefix=lib; os_token=macos ;;
@@ -130,6 +131,7 @@ runs:
     - name: Build
       shell: bash
       run: |
+        set -euo pipefail
         $CARGO_CMD build --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }}
         for p in $CDYLIB_PATHS $BIN_PATHS; do
           ls -lh "$p"
@@ -151,6 +153,7 @@ runs:
     - name: Test and stage artifacts
       shell: bash
       run: |
+        set -euo pipefail
         $TEST_CMD --target "${{ inputs.target }}" ${{ inputs.release-mode == 'true' && '--release' || '' }} $TEST_ARGS
         # Stage cdylib + [[bin]] targets discovered via `cargo metadata`
         # under $RUNNER_TEMP. upload-artifact / attest then glob

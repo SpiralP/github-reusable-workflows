@@ -28,19 +28,27 @@ jobs:
           ref: ${{ github.head_ref }}
       - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
       - run: |
+          set -euo pipefail
           nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
             --print-build-logs --no-write-lock-file --recreate-lock-file \
             -- '${{ inputs.npm-attribute }}' '${{ inputs.npm-manifest-dir }}/package-lock.json'
       - run: git diff && git add -v .
       - run: |
+          set -euo pipefail
           nix build '.#${{ inputs.flake-attribute }}' \
             --print-build-logs --no-update-lock-file
       - run: git status && git diff --cached
-      - run: 'git commit -m "nix: update hashes" -m "$RUN_URL" || true'
+      - run: |
+          set -euo pipefail
+          if git diff --cached --quiet; then
+            echo "No hash changes; nothing to commit"
+            exit 0
+          fi
+          git commit -m "nix: update hashes" -m "$RUN_URL"
+          git push origin
         env:
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      - run: git push origin

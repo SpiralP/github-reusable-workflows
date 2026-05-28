@@ -14,6 +14,7 @@ runs:
   using: composite
   steps:
     - run: |
+        set -euo pipefail
         nix build '.?submodules=1#${{ inputs.flake-attribute }}' \
           --print-build-logs --no-update-lock-file
       shell: bash

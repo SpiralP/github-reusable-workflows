@@ -45,6 +45,7 @@ jobs:
         if: ${{ inputs.runs-on != 'self-hosted' }}
 
       - run: |
+          set -euo pipefail
           nix build '.?submodules=1#${{ inputs.flake-attribute }}' \
             --print-build-logs --no-update-lock-file
 

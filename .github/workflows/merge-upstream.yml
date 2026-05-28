@@ -26,6 +26,7 @@ jobs:
       # merge instead of rebase
       - run: git config pull.rebase false
       - run: |
+          set -euo pipefail
           if ! git pull --allow-unrelated-histories upstream ${{ inputs.branch }}; then
             # keep files deleted by us deleted
             git status --porcelain | awk '{if ($1=="DU") print $2}' | xargs -tr -d '\n' -I '{}' git rm '{}'
