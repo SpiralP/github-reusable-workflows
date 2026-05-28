@@ -183,6 +183,7 @@ runs:
       with:
         name: ${{ env.ASSET_NAME }}
         path: ${{ env.ARTIFACT_DIR }}/*
+        if-no-files-found: error
 
     - name: Generate build provenance attestation
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
