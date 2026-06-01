@@ -9,7 +9,10 @@ description: |
     contents: read       # for checkout
     id-token: write      # for the Sigstore OIDC exchange
     attestations: write  # to publish the signed bundle to GitHub
-  See https://github.com/actions/attest for details.
+  By default (attest: auto) the attestation step is skipped on non-public
+  repos, since GitHub's attestation API rejects user-owned private
+  repositories; the id-token / attestations permissions then go unused but
+  remain harmless. See https://github.com/actions/attest for details.
 
 inputs:
   arch:
@@ -46,6 +49,15 @@ inputs:
       `test-args` to opt out of this remap. Effectively Linux-only on
       GitHub-hosted runners.
     default: "false"
+  attest:
+    description: |
+      Whether to generate a SLSA build-provenance attestation for the staged
+      artifacts. "auto" (default) attests only when the repository is public,
+      since GitHub's attestation API rejects user-owned private repos
+      (https://docs.github.com/rest/repos/attestations#create-an-attestation).
+      "true" forces it (for org-owned private/internal repos that support
+      attestation); "false" disables it entirely.
+    default: auto
 
 runs:
   using: composite
@@ -189,6 +201,7 @@ runs:
         if-no-files-found: error
 
     - name: Generate build provenance attestation
+      if: ${{ inputs.attest == 'true' || (inputs.attest == 'auto' && github.event.repository.visibility == 'public') }}
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
       with:
         show-summary: false
