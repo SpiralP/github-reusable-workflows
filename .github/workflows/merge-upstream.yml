@@ -25,7 +25,8 @@ jobs:
       - run: git remote add upstream ${{ inputs.url }}
       # merge instead of rebase
       - run: git config pull.rebase false
-      - run: |
+      - name: Merge upstream ${{ inputs.url }} ${{ inputs.branch }}
+        run: |
           set -euo pipefail
           if ! git pull --allow-unrelated-histories upstream ${{ inputs.branch }}; then
             # keep files deleted by us deleted

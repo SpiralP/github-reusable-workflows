@@ -162,7 +162,8 @@ jobs:
           gc-max-store-size: 5G
       - run: sudo chown -R 0:0 /nix
         if: ${{ inputs.runs-on != 'self-hosted' }}
-      - run: |
+      - name: Build semantic-release
+        run: |
           set -euo pipefail
           nix build "github:SpiralP/github-reusable-workflows/$WORKFLOW_SHA#semantic-release" \
             --print-build-logs --print-out-paths --out-link "$TMPDIR/semantic-release"

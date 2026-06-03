@@ -27,18 +27,21 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
-      - run: |
+      - name: Update nix hashes for ${{ inputs.npm-attribute }}
+        run: |
           set -euo pipefail
           nix run github:SpiralP/github-reusable-workflows#update-nix-hashes \
             --print-build-logs --no-write-lock-file --recreate-lock-file \
             -- '${{ inputs.npm-attribute }}' '${{ inputs.npm-manifest-dir }}/package-lock.json'
       - run: git diff && git add -v .
-      - run: |
+      - name: Build ${{ inputs.flake-attribute }}
+        run: |
           set -euo pipefail
           nix build '.#${{ inputs.flake-attribute }}' \
             --print-build-logs --no-update-lock-file
       - run: git status && git diff --cached
-      - run: |
+      - name: Commit and push
+        run: |
           set -euo pipefail
           if git diff --cached --quiet; then
             echo "No hash changes; nothing to commit"
