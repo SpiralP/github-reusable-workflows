@@ -16,6 +16,15 @@ on:
         description: Upload the build result as an artifact. (named "build-result")
         required: false
         type: boolean
+      upload-pages-artifact:
+        default: false
+        description: |
+          Package the build result as a `github-pages` artifact (via
+          actions/upload-pages-artifact, which tars it into the shape
+          actions/deploy-pages requires) so a downstream deploy-pages or
+          the deploy-pages-from-run action can consume it directly.
+        required: false
+        type: boolean
 
 # Can't restrict permissions here, or else all use cases require `actions: write`
 # permissions:
@@ -55,3 +64,8 @@ jobs:
           name: build-result
           path: result
           if-no-files-found: error
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: ${{ inputs.upload-pages-artifact }}
+        with:
+          path: result
