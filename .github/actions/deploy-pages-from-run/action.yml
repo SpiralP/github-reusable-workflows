@@ -44,6 +44,11 @@ runs:
         name: github-pages
         path: ${{ runner.temp }}/pages-dl/artifact.tar
         if-no-files-found: error
+        # overwrite so re-running a release run replaces (not duplicates) this
+        # artifact under the same run_id. deploy-pages@v5 looks the artifact up
+        # by name and aborts with "Multiple artifacts named github-pages were
+        # unexpectedly found" if a prior attempt's copy lingers.
+        overwrite: true
 
     - id: deployment
       uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
