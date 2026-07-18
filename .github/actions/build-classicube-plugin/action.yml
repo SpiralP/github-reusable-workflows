@@ -129,7 +129,7 @@ runs:
       shell: bash
       run: rustup target add "${{ inputs.target }}"
 
-    - uses: taiki-e/install-action@c93ccc03e00cd0e08e494f5fd058a6c55a6a1907 # v2.82.8
+    - uses: taiki-e/install-action@2ca9b94c269419b7b0c711c09d0b21c4e1d51145 # v2.83.1
       if: ${{ inputs.use-cross == 'true' }}
       with:
         tool: cross
@@ -157,7 +157,7 @@ runs:
           fi
         done
 
-    - uses: taiki-e/install-action@c93ccc03e00cd0e08e494f5fd058a6c55a6a1907 # v2.82.8
+    - uses: taiki-e/install-action@2ca9b94c269419b7b0c711c09d0b21c4e1d51145 # v2.83.1
       if: ${{ contains(inputs.test-command, 'nextest') && inputs.use-cross != 'true' }}
       with:
         tool: cargo-nextest
