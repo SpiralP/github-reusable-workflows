@@ -10,9 +10,10 @@ description: |
     id-token: write      # for the Sigstore OIDC exchange
     attestations: write  # to publish the signed bundle to GitHub
   By default (attest: auto) the attestation step is skipped on non-public
-  repos, since GitHub's attestation API rejects user-owned private
-  repositories; the id-token / attestations permissions then go unused but
-  remain harmless. See https://github.com/actions/attest for details.
+  repos and on pull-requests from forks, since GitHub's attestation API
+  rejects user-owned private repositories and never grants id-token to fork
+  PRs; the id-token / attestations permissions then go unused but remain
+  harmless. See https://github.com/actions/attest for details.
 
 inputs:
   arch:
@@ -52,8 +53,10 @@ inputs:
   attest:
     description: |
       Whether to generate a SLSA build-provenance attestation for the staged
-      artifacts. "auto" (default) attests only when the repository is public,
-      since GitHub's attestation API rejects user-owned private repos
+      artifacts. "auto" (default) attests only when the repository is public
+      AND the workflow did not originate from a fork PR, since GitHub's
+      attestation API rejects user-owned private repos and never grants
+      id-token to fork PRs
       (https://docs.github.com/rest/repos/attestations#create-an-attestation).
       "true" forces it (for org-owned private/internal repos that support
       attestation); "false" disables it entirely.
@@ -201,7 +204,7 @@ runs:
         if-no-files-found: error
 
     - name: Generate build provenance attestation
-      if: ${{ inputs.attest == 'true' || (inputs.attest == 'auto' && github.event.repository.visibility == 'public') }}
+      if: ${{ (inputs.attest == 'true' || (inputs.attest == 'auto' && github.event.repository.visibility == 'public')) && !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
       uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
       with:
         show-summary: false
