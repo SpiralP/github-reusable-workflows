@@ -205,7 +205,7 @@ runs:
 
     - name: Generate build provenance attestation
       if: ${{ (inputs.attest == 'true' || (inputs.attest == 'auto' && github.event.repository.visibility == 'public')) && !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
-      uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+      uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
       with:
         show-summary: false
         subject-path: ${{ env.ARTIFACT_DIR }}/*
