@@ -63,8 +63,12 @@
             in
             {
               NODE_PATH = "${nodeModules}/node_modules";
-              BASE_CONFIG_PATH = ./semantic-release.json;
-              MERGE_JQ_PATH = ./merge.jq;
+              # A bare `./file` path resolves inside the flake's git source and
+              # is left out of the output closure, so cache/GC on CI can drop it
+              # (cat fails: no such file). writeText gives each file its own
+              # closure-tracked store path.
+              BASE_CONFIG_PATH = pkgs.writeText "semantic-release.json" (builtins.readFile ./semantic-release.json);
+              MERGE_JQ_PATH = pkgs.writeText "merge.jq" (builtins.readFile ./merge.jq);
             };
           text = builtins.readFile ./semantic-release.sh;
         };
